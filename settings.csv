@@ -1,0 +1,28 @@
+Setting,Value
+API_Key,<place API-key here>
+GPT_Model,gpt-4-1106-preview
+Summary_Language,German
+Exclude_Pattern,https:.*( |[.])
+LLM_Instruction,You are an expert reaserch assistant that specializes in summarising research papers. Your Special skill is to summarize papers in such a way that people love listening to them.
+LLM_Prompt,Please write a detailed summary of the following research paper. Focus on the methodology and the results. Finally relate the results to other research on this topic.
+TTS_Model,tts-1
+TTS_Voice,alloy
+TTS_Speed,1.2
+File_Directory,Papers
+Destination_Directory,Outputs
+remove_pdfs_after_process,True
+Send_Email,True
+SMTP_Host,<place host mail here>
+SMTP_Port,<place port here>
+SMTP_User,<place login here>
+SMTP_Password,<place password here>
+Email_From,sender.email@email.de
+Email_To,receiver.email@email.de
+Email_Subject,New Summaries
+Email_Body,"Hey Bud,
+
+attached you find some awesome new paper summaries.
+Enjoy listening!
+
+Best,
+me"

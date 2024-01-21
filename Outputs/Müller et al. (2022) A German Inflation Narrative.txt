@@ -1,0 +1,16 @@
+Der DoCMA-Arbeitsbericht von Henrik Müller, Tobias Schmidt, Jonas Rieger, Lena Marie Hufnagel und Nico Hornig beschäftigt sich mit der Wahrnehmung von Inflation in deutschen Medien und wie diese von den Medien durch Narrative gerahmt wird. Die Analyse basiert auf einem Korpus von etwa drei Millionen Artikeln, die zwischen Januar 2001 und Februar 2022 in den überregionalen Tageszeitungen Süddeutsche Zeitung, Die Welt und Handelsblatt veröffentlicht wurden.
+
+Methodisch nutzt die Studie RollingLDA, eine dynamische Form der Themenmodellierung, welche auf dem statischen LDA-Verfahren basiert. Dieser Ansatz ermöglicht es, Änderungen in der Struktur des Modells im Laufe der Zeit zu erfassen, und die Entwicklung ökonomischer Narrative als soziale Phänomene aufzuzeigen. Durch das Modellieren des Prozesses des kollektiven Gedächtnisses kann RollingLDA sowohl festhalten, wie frühere Erfahrungen durch neue überlagert und verändert werden, als auch wie sie in Vergessenheit geraten. Diese Methodik ist insbesondere dafür geeignet, stabile Zeitreihen zu erzeugen, welche somit regelmäßig aktualisiert werden können.
+
+Die Ergebnisse zeigen ein Narrativ der Unruhe: Nie zuvor in den vergangenen zwei Jahrzehnten wurden so deutliche Verschiebungen in der Wahrnehmung von Inflation beobachtet, was möglicherweise auch einen Wandel in den Inflationserwartungen widerspiegelt. Zudem scheinen Effekte zweiter Ordnung, wie signifikante Lohnforderungen, die lange Zeit in Deutschland keine große Rolle spielten, sich nun anzudeuten. Gegen Ende des Untersuchungszeitraums stehen auch Rohstoffpreise hoch auf der Agenda, getrieben durch den russischen Krieg gegen die Ukraine und die darauffolgenden Sanktionen gegen den Aggressor.
+
+Eine Kernfrage der Studie war, ein Inflationsnarrativ für Deutschland zu identifizieren. Folgende Narrative wurden ausgeführt:
+
+- Inflation wird in erster Linie als problematisch gesehen, insbesondere aus der Sicht von Sparern und Konsumenten.
+- Als Ursachen werden hauptsächlich die Geldpolitik der Zentralbanken und fiskalische Politik gesehen, zweitrangig die Lohnpolitik und Rohstoffpreise.
+- Inflation wird moralisch als schlecht betrachtet, wobei sehr niedrige oder negative Realzinsen für Sparer verurteilt werden.
+- Als Lösungen werden strengere geld- und fiskalpolitische Maßnahmen vorgeschlagen.
+- Protagonisten sind einerseits Verursacher wie Zentralbanken und Finanzministerien, aber auch Leidtragende wie Sparer, Investoren und Arbeiter.
+- Auslösende Ereignisse waren inflationäre Entwicklungen in den Jahren 2008, 2011 und 2021.
+
+Zusammenfassend bietet der Inflationswahrnehmungsindikator (IPI) eine neue Methode, um Überzeugungen zu den Ursachen und Folgen der Inflation zu erfassen. Zukünftige Forschung könnte diese Methode nutzen, um Vorhersagen über makroökonomische Variablen, Marktpreise oder umfragebasierte Erwartungen zu verbessern. Die Einbeziehung anderer Länder könnte dabei zu unterschiedlichen Inflationsnarrativen führen und würde somit einen interessanten Vergleich ermöglichen.
