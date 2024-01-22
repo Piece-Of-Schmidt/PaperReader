@@ -1,8 +1,3 @@
-# install dependencies
-# pip install -r requirements.txt
-
-
-# Import dependencies
 import csv
 import PyPDF2
 import re
@@ -17,12 +12,15 @@ from email import encoders
 
 class ResearchAssistant:
 
-    def __init__(self):
-        self.settings = None
+    def __init__(self, settings_path):
+        self.settings = self.read_settings(path=settings_path)
         self.client = None
         self.pdf = None
         self.summary = None
         self.audio = None
+
+    def init_client(self):
+        self.client = OpenAI(api_key = self.settings["API_Key"])
 
     def read_settings(self, path='settings.csv'):
         """
@@ -31,14 +29,12 @@ class ResearchAssistant:
         try:
             with open(path, mode='r', encoding = 'utf-8') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
-                self.settings = {row["Setting"]: row["Value"] for row in csv_reader}
+                settings = {row["Setting"]: row["Value"] for row in csv_reader}
+            return(settings)
         except FileNotFoundError:
             print(f"Did not find file {path}.")
         except Exception as e:
             print(f"Error: {e}")
-
-    def init_client(self):
-        self.client = OpenAI(api_key = self.settings["API_Key"])
 
     def read_pdf(self, path, remove_references=True):
         """
@@ -191,7 +187,6 @@ class ResearchAssistant:
 
 ## Run Code
             
-assi = ResearchAssistant()
-assi.read_settings()
+assi = ResearchAssistant(settings_path='settings.csv')
 assi.init_client()
 assi.read_and_summarize_pdf()
