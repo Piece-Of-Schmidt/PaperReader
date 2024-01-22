@@ -185,8 +185,8 @@ class ResearchAssistant:
                 print('remove file')
                 os.remove(file_path)
 
-            # send email
-            if sendmail: self.send_email()
+        # send email
+        if sendmail: self.send_email()
 
 
 ## Run Code
