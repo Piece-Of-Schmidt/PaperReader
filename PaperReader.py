@@ -14,7 +14,7 @@ class ResearchAssistant:
 
     def __init__(self, settings_path='settings.csv'):
         self.settings = self.read_settings(path=settings_path)
-        self.client = None
+        self.client = OpenAI(api_key = self.settings["API_Key"])
         self.pdf = None
         self.summary = None
         self.audio = None
@@ -32,9 +32,6 @@ class ResearchAssistant:
             print(f"Did not find file {path}.")
         except Exception as e:
             print(f"Error: {e}")
-
-    def init_client(self):
-        self.client = OpenAI(api_key = self.settings["API_Key"])
 
     def read_pdf(self, path, remove_references=True):
         """
@@ -186,8 +183,8 @@ class ResearchAssistant:
 
 
 
+
 ## Run Code
             
 assi = ResearchAssistant(settings_path='settings.csv')
-assi.init_client()
 assi.read_and_summarize_pdf()
