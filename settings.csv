@@ -8,6 +8,7 @@ LLM_Prompt,Please write a detailed summary of the following research paper. Focu
 TTS_Model,tts-1
 TTS_Voice,alloy
 TTS_Speed,1.2
+Audio_Format,.mp3
 File_Directory,Papers
 Destination_Directory,Outputs
 remove_pdfs_after_process,True
