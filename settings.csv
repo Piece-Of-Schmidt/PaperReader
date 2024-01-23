@@ -7,7 +7,7 @@ LLM_Instruction,You are an expert reaserch assistant that specializes in summari
 LLM_Prompt,Please write a detailed summary of the following research paper. Focus on the methodology and the results. Finally relate the results to other research on this topic.
 TTS_Model,tts-1
 TTS_Voice,alloy
-TTS_Speed,1.2
+TTS_Speed,1.1
 Audio_Format,.mp3
 File_Directory,Papers
 Destination_Directory,Outputs
