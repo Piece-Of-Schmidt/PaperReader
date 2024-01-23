@@ -12,7 +12,7 @@ from email import encoders
 
 class ResearchAssistant:
 
-    def __init__(self, settings_path):
+    def __init__(self, settings_path='settings.csv'):
         self.settings = self.read_settings(path=settings_path)
         self.client = None
         self.pdf = None
@@ -106,7 +106,7 @@ class ResearchAssistant:
                 speed = float(self.settings["TTS_Speed"]),
                 input = self.summary.choices[0].message.content,
             )
-            self.audio.stream_to_file(filename)
+            self.audio.stream_to_file(filename + self.settings["Audio_Format"])
         except Exception as e:
             print(f"Error creating audio: {e}")
 
@@ -122,7 +122,7 @@ class ResearchAssistant:
             msg.attach(MIMEText(self.settings["Email_Body"], 'plain', 'utf-8'))
 
             # Attach files
-            for file_path in glob.glob(os.path.join(self.settings["Destination_Directory"], '*.mp3')):
+            for file_path in glob.glob(os.path.join(self.settings["Destination_Directory"], f'*{self.settings["Audio_Format"]}')):
                 filename = os.path.basename(file_path)
                 with open(file_path, 'rb') as attachment:
                     part = MIMEBase('application', 'octet-stream')
@@ -173,7 +173,7 @@ class ResearchAssistant:
 
             # create audio from summary
             print('create audio file')
-            filename = os.path.join(destdir, os.path.splitext(file)[0] + ".mp3")
+            filename = os.path.join(destdir, os.path.splitext(file)[0])
             self.create_audio_from_summary(filename = filename)
 
             # remove file from folder
@@ -183,6 +183,7 @@ class ResearchAssistant:
 
         # send email
         if sendmail: self.send_email()
+
 
 
 ## Run Code
