@@ -1,7 +1,7 @@
 # Research Paper to Audio Summarizer
 
 ## Overview
-This project is a Python-based tool designed to automatically convert PDF documents into summarized audio files. It reads PDF files, generates summaries using OpenAI's GPT-4 model, converts these summaries into audio format, and then sends them via email. It's particularly useful for processing research papers or documents where quick audio summaries are beneficial.<br><br>For demonstration purposes, there is already one paper located in the *Papers* folder and the created summary in *Output*.
+This project is a Python-based tool designed to automatically convert PDF documents into summarized audio files. It reads PDF files, generates summaries using OpenAI's GPT-4 model, converts these summaries into audio format, and then sends them via email. It's particularly useful for processing research papers or documents where quick audio summaries are beneficial.<br><br>For demonstration purposes, there is already one paper located in the *Papers* folder and the created summary in *Outputs*.
 
 ## Features
 - **PDF Reading**: Extracts text from PDF files.
