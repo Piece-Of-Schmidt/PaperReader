@@ -22,7 +22,7 @@ pip install -r requirements.txt
 1. **Download/Clone Respository**
 2. **Set API Key**: Replace `api_key` in the script with your OpenAI API key.
 3. **Configure Email Settings**: If `Send_Email` in `settings.csv` is set to True, make sure you have your email login, sending and receiving details added to the settings file.
-4. **"Upload" Papers**: Place the Papers that you wish to get summarized in the *Papers* folder.
+4. **"Upload" Papers**: Place the Papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
 5. **Start process**: Run the python script or execute `read_paper.bat` to start the process.
 
 
