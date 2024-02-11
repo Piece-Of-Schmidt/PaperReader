@@ -59,7 +59,7 @@ class ResearchAssistant:
             print("No PDF file available.")
             return
         
-        lang = self.settings["Summary_Language"]
+        lang = self.settings["Inference_Language"]
         suffix = f" Please answer in {lang}." if lang != "English" else ""
         
         instruction = self.settings["LLM_Instruction"]
