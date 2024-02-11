@@ -1,11 +1,14 @@
 import csv
-import PyPDF2
 import re
 import os
 import glob
 import smtplib
 import random
-from fpdf import FPDF
+import requests
+from PyPDF2 import PdfReader
+from fpdf import FPDF, XPos, YPos
+# from fpdf.enums import XPos, YPos
+from datetime import date
 from openai import OpenAI
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,15 +17,24 @@ from email import encoders
 
 class PDF(FPDF):
     def header(self):
+        # Einstellungen für die Kopfzeile
         self.set_font('helvetica', 'B', 12)
-        self.cell(0, 10, 'Portfolio', 0, 1, 'C')
+        self.cell(0, 10, 'Portfolio', new_x=XPos.LEFT, new_y=YPos.NEXT, align='C')
+
+    def footer(self):
+        # Einstellungen für die Fußzeile
+        self.set_y(-15)
+        self.set_font('helvetica', 'I', 8)
+        self.cell(0, 10, f'Seite {self.page_no()}', new_x=XPos.LEFT, new_y=YPos.TOP, align='C')
 
     def chapter_title(self, title):
-        self.set_font('helvetica', 'B', 12)
-        self.cell(0, 10, title, 0, 1, 'L')
+        # Einstellungen für Kapiteltitel
+        self.set_font('helvetica', 'B', 14)
+        self.cell(0, 10, title, new_x=XPos.LEFT, new_y=YPos.NEXT, align='L')
         self.ln(10)
 
     def chapter_body(self, body):
+        # Einstellungen für den Haupttext
         self.set_font('helvetica', '', 12)
         self.multi_cell(0, 10, body)
         self.ln()
@@ -32,11 +44,14 @@ class ResearchAssistant:
     def __init__(self, settings_path='settings.csv', portfolio_maker=None):
         self.settings = self.read_settings(path=settings_path)
         self.client = OpenAI(api_key = self.settings["API_Key"])
+        self.files_to_read = glob.glob(os.path.join(self.settings["File_Directory"], '*.pdf'))
         self.pdf = None
         self.summary = None
         self.all_summaries = []
         self.audio = None
         self.pdf_maker = portfolio_maker
+        self.notion_header = self.notion_build_header()
+        self.notion_page_id = None
 
     def read_settings(self, path='settings.csv'):
         """
@@ -57,7 +72,7 @@ class ResearchAssistant:
         Reads and processes a PDF file from the given path.
         """
         try:
-            reader = PyPDF2.PdfReader(path)
+            reader = PdfReader(path)
             pages = [reader.pages[idx].extract_text() for idx in range(len(reader.pages))]
             pages = ''.join(pages)
             pages = re.sub(self.settings["Exclude_Pattern"], '', pages)
@@ -130,11 +145,12 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error creating audio: {e}")
 
+    # if newsletter: replace e mail body text with automatically generated newletter text
     def relace_mail_body_with_newsletter_text(self):
         """
         Creates a newsletter text based on the summaries.
         """
-        lang = self.settings["Summary_Language"]
+        lang = self.settings['Inference_Language']
         suffix = f" Please answer in {lang}." if lang != "English" else ""
         
         instruction = self.settings['Newsletter_Prompt']
@@ -151,7 +167,8 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error creating newsletter: {e}")
 
-    def send_email(self, build_portfolio=False):
+    # method for sending email with attachments
+    def send_email(self, include_pdf_portfolio=False):
         """
         Sends an email with the specified settings and attachments.
         """
@@ -164,7 +181,7 @@ class ResearchAssistant:
 
             # Attach files
             relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f'*{self.settings['Audio_Format']}'))
-            if build_portfolio:
+            if include_pdf_portfolio:
                 relevant_files.append(*glob.glob(os.path.join(self.settings['Destination_Directory'], '*.pdf')))
             for file_path in relevant_files:
                 filename = os.path.basename(file_path)
@@ -185,27 +202,117 @@ class ResearchAssistant:
                 server.quit()
         except Exception as e:
             print(f"Error sending email: {e}")
-        
-    def read_and_summarize_pdf(self):
+    
 
-        filedir = self.settings["File_Directory"]
+    # ---- NOTION STUFF ----
+            
+    # build header for notion requests
+    def notion_build_header(self):
+        return{
+            "Authorization": "Bearer " + self.settings['Notion_Token'],
+            "Content-Type": "application/json",
+            "Notion-Version": self.settings['Notion_Version']
+        }
+        
+    # create new entry to notion database
+    def notion_create_new_page(self, page_name = f'Summaries from {date.today().strftime("%m/%d/%y")}'):
+        """
+        creates a new entry to a given notion database. The database ID is provided by settings.csv
+        """
+        mask = {
+            'Tags': {'id': 'ZMX%5D', 'type': 'multi_select', 'multi_select': []},
+            'Name': {'id': 'title',
+            'type': 'title',
+            'title': [{'type': 'text',
+                'text': {'content': page_name, 'link': None},
+                'annotations': {'bold': False,
+                'italic': False,
+                'strikethrough': False,
+                'underline': False,
+                'code': False,
+                'color': 'default'},
+                'plain_text': page_name,
+                'href': None}]}
+            }
+
+        create_url = 'https://api.notion.com/v1/pages'
+        payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": mask}
+        self.notion_page_id = requests.post(create_url, headers=self.notion_header, json=payload).json()['id']    
+
+    # edit page in notion database
+    def notion_edit_page(self, text_content, header_content=None):
+        """
+        pastes the created summaries into the notion page
+        """
+        blocks = {'children': []}
+        
+        # build headline
+        if header_content:
+            header = {'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [{'type': 'text', 'text': {'content': header_content}, 'annotations': {'bold': True}}]}}
+            blocks['children'].append(header)
+        
+        # build text content as paragraph blocks
+        text_chunks = re.findall(r".{1,2000}(?=\s|$|\n)", text_content) # because of character limit per text block
+        for chunk in text_chunks:
+            paragraph_block = {'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': chunk.strip()}}]}}
+            blocks['children'].append(paragraph_block)
+        
+        # paste headline block and text block
+        blocks['children'].append({'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': "\n"}}]}})
+
+        # push to notion
+        edit_url = f"https://api.notion.com/v1/blocks/{self.notion_page_id}/children"
+        res = requests.patch(edit_url, headers=self.notion_header, json=blocks)
+
+        # return status
+        if res.status_code == 200:
+            print(f"{res.status_code}: Page edited successfully")
+        else:
+            print(f"{res.status_code}: Error during page editing")
+            print(res.text)
+        return res
+    
+    # ---- END: NOTION STUFF ----
+
+    # build pdf portfolio
+    def build_pdf_portfolio(self):
+        # Portfolio-Initialisierung
+        pdf = self.pdf_maker
+        pdf.add_page()
+        
+        # Seitenränder setzen (oben, unten, links, rechts)
+        pdf.set_margins(10, 10, 10)
+        
+        filenames = [os.path.splitext(os.path.basename(file))[0] for file in self.files_to_read]
+        for title, body in zip(filenames, self.all_summaries):
+            pdf.chapter_title(title)
+            pdf.chapter_body(body.encode('latin-1', 'replace').decode('latin-1'))
+        
+        # PDF lokal speichern
+        pdf.output(os.path.join(self.settings['Destination_Directory'], 'Portfolio.pdf'))
+
+    # complete loop
+    def read_and_summarize_pdf(self, remove_after_process=True):
+
+        # dim vars
         destdir = self.settings["Destination_Directory"]
         create_audio = self.settings["create_audio"].lower() == 'true'
+        include_notion = self.settings["include_notion"].lower() == 'true'
+        build_portfolio = self.settings["build_portfolio"].lower() == 'true'
         create_newsletter = self.settings["create_newsletter"].lower() == 'true'
         sendmail = self.settings["send_email"].lower() == 'true'
         unlink = self.settings["remove_pdfs_after_process"].lower() == 'true'
-        build_portfolio = self.settings["build_portfolio"].lower() == 'true'
-        all_files = glob.glob(os.path.join(filedir, '*.pdf'))
         
-        # double check: create destdir if it does not exist
+        # pre-loop: create destdir if it does not exist
         if not os.path.exists(destdir):
             os.makedirs(destdir)
 
-        if build_portfolio:
-            pdf = self.pdf_maker
-            pdf.add_page()
-
-        for file_path in all_files:
+        # pre-loop: create notion page if desired
+        if include_notion:
+            self.notion_create_new_page()
+        
+        # loop through all pdf files in folder
+        for file_path in self.files_to_read:
             
             # get file name
             file = os.path.basename(file_path)
@@ -220,6 +327,7 @@ class ResearchAssistant:
             self.create_summary()
 
             # save summary locally
+            print('save summary locally')
             filename = os.path.join(destdir, root_name + ".txt")
             self.save_summary(filename = filename)
 
@@ -229,29 +337,32 @@ class ResearchAssistant:
                 filename = os.path.join(destdir, root_name)
                 self.create_audio_from_summary(filename = filename)
 
+            # create notion page
+            if include_notion:
+                print('create Notion page')
+                self.notion_edit_page(
+                    text_content = self.summary,
+                    header_content = root_name)
+            
             # remove file from folder
             if unlink:
                 print('remove file')
                 os.remove(file_path)
 
-        # create newsletter
-        if create_newsletter:
+        # post-loop: create newsletter text based on all created summaries
+        if create_newsletter & (len(self.all_summaries)>0):
             print('create newsletter')
             self.relace_mail_body_with_newsletter_text()
 
-        # build and save portfolio locally
-        if build_portfolio:
+        # post-loop: create pdf portfolio based on all created summaries and save locally
+        if build_portfolio & (len(self.all_summaries)>0):
             print('build pdf portfolio')
-            filenames = [os.path.splitext(os.path.basename(file))[0] for file in all_files]
-            for summary, meta in zip(self.all_summaries, filenames):
-                title = meta.encode('latin-1', 'replace').decode('latin-1')
-                body = summary.encode('latin-1', 'replace').decode('latin-1')
-                pdf.chapter_title(title)
-                pdf.chapter_body(body)
-            pdf.output(os.path.join(destdir, 'Portfolio.pdf'))
+            self.build_pdf_portfolio()
 
-        # send email
-        if sendmail: self.send_email(build_portfolio=build_portfolio)
+        # post-loop: send email
+        if sendmail:
+            print('send mail')
+            self.send_email(include_pdf_portfolio=build_portfolio)
 
 
 # run code
