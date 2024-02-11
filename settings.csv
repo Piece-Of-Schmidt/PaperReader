@@ -2,7 +2,7 @@ Setting,Value
 create_audio,True
 build_portfolio,True
 create_newsletter,True
-include_notion,True
+include_notion,False
 send_email,True
 remove_pdfs_after_process,False
 API_Key,<place API-key here>
@@ -21,14 +21,14 @@ Notion_Version,2022-06-28
 Notion_Token,<place Notion Secret Token here>
 Notion_Database_Id,<place Notion Database ID here>
 File_Directory,Papers
-Destination_Directory,Test
+Destination_Directory,Outputs
 SMTP_Host,<place host mail here>
 SMTP_Port,<place port here>
 SMTP_User,<place login here>
 SMTP_Password,<place password here>
 Email_From,<sender.email@email.de>
 Email_To,<receiver.email@email.de>
-Email_Subject,Neue Summaries
+Email_Subject,New Summaries
 Email_Body,"Hey Bud,
 
 attached you find some awesome new paper summaries.
