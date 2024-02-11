@@ -17,7 +17,7 @@ TTS_Speed,1
 Audio_Format,.aac
 Newsletter_Prompt,You are a content creator for scientific newsletters. Please read the following texts and write a short Nesletter based on them.
 File_Directory,Papers
-Destination_Directory,Test
+Destination_Directory,Outputs
 SMTP_Host,<place host mail here>
 SMTP_Port,<place port here>
 SMTP_User,<place login here>
