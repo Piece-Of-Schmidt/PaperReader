@@ -8,6 +8,8 @@ This project is a Python-based tool designed to automatically convert PDF docume
 - **Text Summarization**: Uses OpenAI's GPT-4 model to generate concise summaries.
 - **Text-to-Speech**: Converts summaries into audio files.
 - **Email Integration**: Sends the generated audio files via email.
+- **Newsletter**: If activated, creates an automated Newsletter based on the created summaries and uses this newsletter as e-mail text.
+- **Notion Integration**: Uploads all summaries to a pre defined Notion Database. 
 
 ## Installation
 
@@ -32,8 +34,7 @@ pip install -r requirements.txt
 - The text is then summarized using OpenAI's GPT-4 model.
 - These summaries are converted to audio files and saved in a specified output directory.
 - Finally, it sends these audio files as email attachments.
-- By default, all PDF files located in *Papers* are removed afterwards.
-- this setting as well as other settings (such as the output language, the OpenAI model, etc.) can be modified in `settings.csv`
+- all settings (such as the output language, the OpenAI model, API Keys, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
 The app allows an upload of all summaries to a Notion Database. To use Notion automatically follow the followimg steps:
