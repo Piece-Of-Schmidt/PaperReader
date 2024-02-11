@@ -1,4 +1,5 @@
 PyPDF2
+fpdf2
 openai
 glob2
 smtplib
