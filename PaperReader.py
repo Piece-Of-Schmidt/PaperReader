@@ -145,7 +145,7 @@ class ResearchAssistant:
             print(f"Error creating audio: {e}")
 
     # if newsletter: replace e mail body text with automatically generated newletter text
-    def relace_mail_body_with_newsletter_text(self):
+    def replace_mail_body_with_newsletter_text(self):
         """
         Creates a newsletter text based on the summaries.
         """
@@ -336,9 +336,9 @@ class ResearchAssistant:
                 filename = os.path.join(destdir, root_name)
                 self.create_audio_from_summary(filename = filename)
 
-            # create notion page
+            # add summary to notion page
             if include_notion:
-                print('create Notion page')
+                print('append Notion page')
                 self.notion_edit_page(
                     text_content = self.summary,
                     header_content = root_name)
@@ -351,7 +351,7 @@ class ResearchAssistant:
         # post-loop: create newsletter text based on all created summaries
         if create_newsletter & (len(self.all_summaries)>0):
             print('create newsletter')
-            self.relace_mail_body_with_newsletter_text()
+            self.replace_mail_body_with_newsletter_text()
 
         # post-loop: create pdf portfolio based on all created summaries and save locally
         if build_portfolio & (len(self.all_summaries)>0):
