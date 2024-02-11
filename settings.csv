@@ -2,8 +2,9 @@ Setting,Value
 create_audio,True
 build_portfolio,True
 create_newsletter,True
+include_notion,True
 send_email,True
-remove_pdfs_after_process,True
+remove_pdfs_after_process,False
 API_Key,<place API-key here>
 GPT_Summarizer_Model,gpt-4-1106-preview
 GTP_Newsletter_Model,gpt-3.5-turbo
@@ -16,8 +17,11 @@ TTS_Voice,shuffle
 TTS_Speed,1
 Audio_Format,.aac
 Newsletter_Prompt,You are a content creator for scientific newsletters. Please read the following texts and write a short Nesletter based on them.
+Notion_Version,2022-06-28
+Notion_Token,<place Notion Secret Token here>
+Notion_Database_Id,<place Notion Database ID here>
 File_Directory,Papers
-Destination_Directory,Outputs
+Destination_Directory,Test
 SMTP_Host,<place host mail here>
 SMTP_Port,<place port here>
 SMTP_User,<place login here>
