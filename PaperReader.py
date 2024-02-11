@@ -186,7 +186,7 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error sending email: {e}")
         
-    def read_and_summarize_pdf(self, remove_after_process=True):
+    def read_and_summarize_pdf(self):
 
         filedir = self.settings["File_Directory"]
         destdir = self.settings["Destination_Directory"]
