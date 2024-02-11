@@ -49,6 +49,7 @@ https://developers.notion.com/docs/create-a-notion-integration
 
 ## Note
 
+- it is recommended to use meaningful file names for the pdf files you wish to get summarised. These file names are used as headlines in the PDF summary portfolio (and in Notion, if activated).
 - Ensure you have the necessary permissions to use and share the content of the PDFs you are processing.
 - Handle your OpenAI API key and email credentials securely.
 
