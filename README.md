@@ -42,9 +42,8 @@ The app allows an upload of all summaries to a Notion Database. To use Notion au
 ## Requirements
 
 - Python 3.x
-- PyPDF2
-- OpenAI Python client
-- SMTP library for Python
+- packages listed in requirements.txt
+- OpenAI API key
 - Internet connection for API access
 
 ## Note
