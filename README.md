@@ -35,6 +35,9 @@ pip install -r requirements.txt
 - By default, all PDF files located in *Papers* are removed afterwards.
 - this setting as well as other settings (such as the output language, the OpenAI model, etc.) can be modified in `settings.csv`
 
+## Notion integration
+The app allows an upload of all summaries to a Notion Database. To use Notion automatically do the following:
+- ... to be added ...
 
 ## Requirements
 
