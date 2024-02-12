@@ -37,7 +37,7 @@ pip install -r requirements.txt
 - all settings (such as the output language, the OpenAI model, API Keys, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
-The app allows an upload of all summaries to a Notion Database. To use Notion automatically follow the followimg steps:
+The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. Learn how to get both keys here:
 
 https://developers.notion.com/docs/create-a-notion-integration
 
