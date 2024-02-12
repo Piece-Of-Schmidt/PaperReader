@@ -22,19 +22,22 @@ pip install -r requirements.txt
 ## Usage
 
 1. **Download/Clone Respository**
-2. **Set API Key**: Replace `api_key` in the script with your OpenAI API key.
-3. **Configure Email Settings**: If `Send_Email` in `settings.csv` is set to True, make sure you have your email login, sending and receiving details added to the settings file.
-4. **"Upload" Papers**: Place the Papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
+2. **Set API Key**: Replace `api_key` in `settings.csv` with your OpenAI API key.
+3. **Configure Email Settings**: If `send_email` in `settings.csv` is set to True, make sure you have your email login, sending and receiving details added to the settings file.
+4. **"Upload" Papers**: Place the papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
 5. **Start process**: Run the python script or execute `read_paper.bat` to start the process.
 
 
 ## How it Works
 
 - The script iterates over each PDF file located in *Papers*, extracts its text, and removes any unwanted patterns or references.
-- The text is then summarized using OpenAI's GPT-4 model.
+- The text is then summarized using OpenAI's GPT-4 model (default model, can be changed in settings).
 - These summaries are converted to audio files and saved in a specified output directory.
-- Finally, it sends these audio files as email attachments.
-- all settings (such as the output language, the OpenAI model, API Keys, Notion connection etc.) can be modified in `settings.csv`
+- The text summaries are combined in a single PDF file with the file names used as titles.
+- If activated, the script sends the summaries to a Notion database. By default, a new entry for the current day is created.
+- If activated, the script calls OpenAI's GPT-3.5-Turbo model (default model, can be changed in settings) to create a newsletter text based on the created summaries. This will overwrite the default email body provided in the settings.
+- Finally, it sends the PDF portfolio along with the audio files to a specified email account (probably your own).
+- Many settings (such as the output language, the OpenAI model, API Keys, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
 The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. Learn how to get both keys here:
