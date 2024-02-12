@@ -32,12 +32,12 @@ pip install -r requirements.txt
 
 - The script iterates over each PDF file located in *Papers*, extracts its text, and removes any unwanted patterns or references.
 - The text is then summarized using OpenAI's GPT-4 model (default model, can be changed in settings).
-- These summaries are converted to audio files and saved in a specified output directory.
+- These summaries are converted to audio files using OpenAI's TTS model and saved in a specified output directory.
 - The text summaries are combined in a single PDF file with the file names used as titles.
 - If activated, the script sends the summaries to a Notion database. By default, a new entry for the current day is created.
 - If activated, the script calls OpenAI's GPT-3.5-Turbo model (default model, can be changed in settings) to create a newsletter text based on the created summaries. This will overwrite the default email body provided in the settings.
 - Finally, it sends the PDF portfolio along with the audio files to a specified email account (probably your own).
-- Many settings (such as the output language, the OpenAI model, API Keys, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
+- Many settings (such as the output language, the OpenAI model, your API Keys, the audio voice, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
 The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. Learn how to get both keys here:
