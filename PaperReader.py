@@ -179,7 +179,7 @@ class ResearchAssistant:
             msg.attach(MIMEText(self.settings['Email_Body'], 'plain', 'utf-8'))
 
             # Attach files
-            relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f'*{self.settings['Audio_Format']}'))
+            relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f"*{self.settings['Audio_Format']}"))
             if include_pdf_portfolio:
                 relevant_files.append(*glob.glob(os.path.join(self.settings['Destination_Directory'], '*.pdf')))
             for file_path in relevant_files:
