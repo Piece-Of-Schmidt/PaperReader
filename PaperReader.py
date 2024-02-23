@@ -44,13 +44,14 @@ class ResearchAssistant:
         self.settings = self.read_settings(path=settings_path)
         self.client = OpenAI(api_key = self.settings["API_Key"])
         self.files_to_read = glob.glob(os.path.join(self.settings["File_Directory"], '*.pdf'))
-        self.pdf = None
+        self.paper = None
         self.summary = None
         self.all_summaries = []
         self.audio = None
         self.pdf_maker = portfolio_maker
         self.notion_header = self.notion_build_header()
         self.notion_page_id = None
+        self.paper_metrices = None
 
     def read_settings(self, path='settings.csv'):
         """
@@ -79,17 +80,49 @@ class ResearchAssistant:
             if remove_references:
                 pages = re.sub('(\n)?References(\n)?.*', '', pages, flags=re.DOTALL)
 
-            self.pdf = pages
+            self.paper = pages
         except Exception as e:
             print(f"Error reading PDF {path}: {e}")
-            self.pdf = None
+            self.paper = None
 
+    def get_paper_metrices(self, paper_title=None):
+
+        # regex
+        pattern = r'^(?P<author>.+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
+        match = re.match(pattern, paper_title)
+        
+        if match:
+            metrices = match.groupdict()
+            metrices['year'] = int(metrices['year'])  # year to integer
+            
+        else:
+            instruction = 'Please extract from the following text the information about the author(s), the publishing year and the title. Provide the information in the following format: author (year) title'
+            prompt = self.paper[:1000] 
+        
+            try:
+                metrices = self.client.chat.completions.create(
+                    model = self.settings['GTP_Newsletter_Model'],
+                    messages=[
+                        {"role": "system", "content": instruction},
+                        {"role": "user", "content": prompt}
+                    ]).choices[0].message.content
+                
+                metrices = re.match(pattern, metrices)
+                metrices = metrices.groupdict()
+
+                metrices['year'] = int(metrices['year'])  # year to integer
+
+            except Exception as e:
+                print(f"Error creating newsletter: {e}")
+        
+        self.paper_metrices = metrices
     
+
     def create_summary(self):
         """
         Creates a summary of the provided text.
         """
-        if not self.pdf:
+        if not self.paper:
             print("No PDF file available.")
             return
         
@@ -97,7 +130,7 @@ class ResearchAssistant:
         suffix = f" Please answer in {lang}." if lang != "English" else ""
         
         instruction = self.settings["LLM_Instruction"]
-        prompt = f"{self.settings['LLM_Prompt']}{suffix} \n\n {self.pdf}"
+        prompt = f"{self.settings['LLM_Prompt']}{suffix} \n\n {self.paper}"
         
         try:
             summary = self.client.chat.completions.create(
@@ -153,7 +186,7 @@ class ResearchAssistant:
         suffix = f" Please answer in {lang}." if lang != "English" else ""
         
         instruction = self.settings['Newsletter_Prompt']
-        prompt = f"{' \n\nNext text:\n\n'.join(self.all_summaries)}{suffix}"
+        prompt = ' \n\nNext text:\n\n'.join(self.all_summaries) + suffix
         
         try:
             newsletter_text = self.client.chat.completions.create(
@@ -211,65 +244,60 @@ class ResearchAssistant:
             "Authorization": "Bearer " + self.settings['Notion_Token'],
             "Content-Type": "application/json",
             "Notion-Version": self.settings['Notion_Version']
-        }
-        
-    # create new entry to notion database
-    def notion_create_new_page(self, page_name = f'Summaries from {date.today().strftime("%m/%d/%y")}'):
-        """
-        creates a new entry to a given notion database. The database ID is provided by settings.csv
-        """
-        mask = {
-            'Tags': {'id': 'ZMX%5D', 'type': 'multi_select', 'multi_select': []},
-            'Name': {'id': 'title',
-            'type': 'title',
-            'title': [{'type': 'text',
-                'text': {'content': page_name, 'link': None},
-                'annotations': {'bold': False,
-                'italic': False,
-                'strikethrough': False,
-                'underline': False,
-                'code': False,
-                'color': 'default'},
-                'plain_text': page_name,
-                'href': None}]}
-            }
-
-        create_url = 'https://api.notion.com/v1/pages'
-        payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": mask}
-        self.notion_page_id = requests.post(create_url, headers=self.notion_header, json=payload).json()['id']    
+        }    
 
     # edit page in notion database
-    def notion_edit_page(self, text_content, header_content=None):
+    def notion_parse_text_content(self, text_content, header_content=None):
         """
-        pastes the created summaries into the notion page
+        transforms summary to correct format
         """
-        blocks = {'children': []}
+
+        blocks = []
         
         # build headline
         if header_content:
             header = {'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [{'type': 'text', 'text': {'content': header_content}, 'annotations': {'bold': True}}]}}
-            blocks['children'].append(header)
+            blocks.append(header)
         
         # build text content as paragraph blocks
         text_chunks = re.findall(r".{1,2000}(?=\s|$|\n)", text_content) # because of character limit per text block
         for chunk in text_chunks:
             paragraph_block = {'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': chunk.strip()}}]}}
-            blocks['children'].append(paragraph_block)
+            blocks.append(paragraph_block)
         
         # paste headline block and text block
-        blocks['children'].append({'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': "\n"}}]}})
+        blocks.append({'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': "\n"}}]}})
+        
+        return blocks
+    
 
-        # push to notion
-        edit_url = f"https://api.notion.com/v1/blocks/{self.notion_page_id}/children"
-        res = requests.patch(edit_url, headers=self.notion_header, json=blocks)
+    def notion_create_new_page(self, author=None, year=None, title=None, summary=None):
+        """
+        creates a new entry to a given notion database. The database ID is provided by settings.csv. The database si expected to have columns "Author", "Year", and "Title"
+        """
+        create_url = 'https://api.notion.com/v1/pages'
 
-        # return status
-        if res.status_code == 200:
-            print(f"{res.status_code}: Page edited successfully")
+        author = author if author is not None else self.paper_metrices['author']
+        year = year if year is not None else self.paper_metrices['year']
+        title = title if title is not None else self.paper_metrices['title']
+        summary = summary if summary is not None else self.summary
+
+        properties = {
+            "Author": {"title": [{"text": {"content": author}}]},
+            "Year": {"number": year},
+            "Title": {"rich_text": [{"text": {"content": title}}]}
+            }
+
+        children = self.notion_parse_text_content(summary, header_content=title)
+
+        payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": properties, "children": children}
+        response = requests.post(create_url, headers=self.notion_header, json=payload)
+        if response.status_code == 200:
+            self.notion_page_id = response.json()['id']
+            print("Neue Seite erfolgreich in Notion erstellt.")
         else:
-            print(f"{res.status_code}: Error during page editing")
-            print(res.text)
-        return res
+            print("Fehler beim Erstellen der neuen Seite in Notion:", response.text)
+
     
     # ---- END: NOTION STUFF ----
 
@@ -305,11 +333,7 @@ class ResearchAssistant:
         # pre-loop: create destdir if it does not exist
         if not os.path.exists(destdir):
             os.makedirs(destdir)
-
-        # pre-loop: create notion page if desired
-        if include_notion:
-            self.notion_create_new_page()
-        
+     
         # loop through all pdf files in folder
         for file_path in self.files_to_read:
             
@@ -339,9 +363,8 @@ class ResearchAssistant:
             # add summary to notion page
             if include_notion:
                 print('append Notion page')
-                self.notion_edit_page(
-                    text_content = self.summary,
-                    header_content = root_name)
+                self.get_paper_metrices(root_name)
+                self.notion_create_new_page()
             
             # remove file from folder
             if unlink:
@@ -362,7 +385,6 @@ class ResearchAssistant:
         if sendmail:
             print('send mail')
             self.send_email(include_pdf_portfolio=build_portfolio)
-
 
 # run code
 assi = ResearchAssistant('settings.csv', portfolio_maker=PDF())
