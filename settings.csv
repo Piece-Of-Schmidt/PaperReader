@@ -10,7 +10,7 @@ GPT_Summarizer_Model,gpt-4-1106-preview
 GPT_Newsletter_Model,gpt-3.5-turbo
 Inference_Language,German
 Exclude_Pattern,Electronic( )*copy available at: |https:.*( |[.])
-LLM_Instruction,You are a research assistant expert specializing in summarizing research papers for podcasts and radio reports.
+LLM_Instruction,You are a research assistant specializing in summarizing research papers for podcasts and radio reports.
 LLM_Prompt,Please write a detailed summary of the following research paper. Focus on the methodology and the results. Finally relate the results to other research on this topic.
 TTS_Model,tts-1
 TTS_Voice,shuffle
