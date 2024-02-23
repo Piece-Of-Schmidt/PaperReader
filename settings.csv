@@ -1,7 +1,7 @@
 Setting,Value
 create_audio,True
 build_portfolio,True
-create_newsletter,True
+create_newsletter,False
 include_notion,False
 send_email,True
 remove_pdfs_after_process,False
