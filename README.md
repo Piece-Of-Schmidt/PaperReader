@@ -34,7 +34,7 @@ pip install -r requirements.txt
 - The text is then summarized using OpenAI's GPT-4 model (default model, can be changed in settings).
 - These summaries are converted to audio files using OpenAI's TTS model and saved in a specified output directory.
 - The text summaries are combined in a single PDF file with the file names used as titles.
-- If activated, the script sends the summaries to a Notion database. By default, a new entry is created for every paper in the "Papers" folder. The script automatically extracts the information about author(s), publishing year, and title from the file name. If the file name does not contain these information, the script sends an API call to the OpenAI Model specified in `settings['GPT_Newsletter_Model"]` which then tries to extract these information from the first 1000 chars of the paper being processed. The Notion database needs to contain the columns "autor", "year", and "title" for the script to work properly.
+- If activated, the script sends the summaries to a Notion database. By default, a new entry is created for every paper in the *Papers* folder. The script automatically extracts the information about author(s), publishing year, and title from the file name. If the file name does not contain these information, the script sends an API call to the OpenAI Model specified in `settings['GPT_Newsletter_Model"]` which then tries to extract these information from the first 1000 chars of the paper being processed. The Notion database needs to contain the columns "autor", "year", and "title" for the script to work properly.
 - If activated, the script calls OpenAI's GPT-3.5-Turbo model (default model, can be changed in settings) to create a newsletter text based on the created summaries. This will overwrite the default email body provided in the settings.
 - Finally, it sends the PDF portfolio along with the audio files to a specified email account (probably your own).
 - Many settings (such as the output language, the OpenAI model, your API Keys, the audio voice, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
@@ -43,8 +43,8 @@ pip install -r requirements.txt
 The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. Learn how to get both keys here:
 
 https://developers.notion.com/docs/create-a-notion-integration
-<br>
-To make sure everything works fine, make sure the columns in your notion database are named "author", "year", and "title". If you need different or more than these columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
+<br><br>
+To make sure everything works fine, make sure the columns in your notion database are named "author", "year", and "title". If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
 
 ## Requirements
 
