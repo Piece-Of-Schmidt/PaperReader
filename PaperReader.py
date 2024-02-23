@@ -86,7 +86,11 @@ class ResearchAssistant:
             self.paper = None
 
     def get_paper_metrices(self, paper_title=None):
-
+        """
+        Extracts information about author, publication date and paper title from document name.
+        If the document name does not contain these information (according on regex matching),
+        ChatGPT (the concrete model being specified in the settings['GPT_Newsletter_Model']) tries to guess these information.
+        """
         # regex
         pattern = r'^(?P<author>.+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
         match = re.match(pattern, paper_title)
