@@ -7,7 +7,7 @@ send_email,True
 remove_pdfs_after_process,False
 API_Key,<place API-key here>
 GPT_Summarizer_Model,gpt-4-1106-preview
-GTP_Newsletter_Model,gpt-3.5-turbo
+GPT_Newsletter_Model,gpt-3.5-turbo
 Inference_Language,German
 Exclude_Pattern,Electronic( )*copy available at: |https:.*( |[.])
 LLM_Instruction,You are a research assistant expert specializing in summarizing research papers for podcasts and radio reports.
