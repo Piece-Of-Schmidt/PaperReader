@@ -101,7 +101,7 @@ class ResearchAssistant:
         
             try:
                 metrices = self.client.chat.completions.create(
-                    model = self.settings['GTP_Newsletter_Model'],
+                    model = self.settings['GPT_Newsletter_Model'],
                     messages=[
                         {"role": "system", "content": instruction},
                         {"role": "user", "content": prompt}
@@ -190,7 +190,7 @@ class ResearchAssistant:
         
         try:
             newsletter_text = self.client.chat.completions.create(
-                model = self.settings['GTP_Newsletter_Model'],
+                model = self.settings['GPT_Newsletter_Model'],
                 messages=[
                     {"role": "system", "content": instruction},
                     {"role": "user", "content": prompt}
