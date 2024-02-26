@@ -209,7 +209,7 @@ class ResearchAssistant:
         Sends an email with the specified settings and attachments.
         """
         if self.settings['include_notion'].lower() == 'true':
-            self.settings['Email_Body'] = self.settings['Email_Body'] + '\n\nLink to Notion Database:\n' + f'https://www.notion.so/{assi.settings['Notion_Database_Id']}'
+            self.settings['Email_Body'] = self.settings['Email_Body'] + '\n\nLink to Notion Database:\n' + f"https://www.notion.so/{assi.settings['Notion_Database_Id']}"
         try:
             msg = MIMEMultipart()
             msg['From'] = self.settings['Email_From']
