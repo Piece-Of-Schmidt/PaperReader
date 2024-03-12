@@ -5,6 +5,7 @@ import glob
 import smtplib
 import random
 import requests
+from datetime import date
 from PyPDF2 import PdfReader
 from fpdf import FPDF, XPos, YPos
 from datetime import date
@@ -252,6 +253,29 @@ class ResearchAssistant:
             "Notion-Version": self.settings['Notion_Version']
         }    
 
+    def notion_create_tags(self, summary=None, tags=""):
+        """
+        Assigns 1-3 tags to the created article summary based on the tags provided in settings.csv
+        """
+        if len(tags) > 0:
+
+            summary = summary if summary is not None else self.summary
+            instruction = f'Read the following text and assign 1-3 of the following labels to it. Please only provide labels that truely describe the text. If you find no label matches the text, return "none". Return the labels as a comma-seperated list.\nTags: {tags}'
+            
+            try:
+                tags = self.client.chat.completions.create(
+                    model = self.settings['GPT_Newsletter_Model'],
+                    messages=[
+                        {"role": "system", "content": instruction},
+                        {"role": "user", "content": summary}
+                    ]).choices[0].message.content
+                
+            except Exception as e:
+                print(f"Error creating tags: {e}")
+                tags = ""
+
+        return tags
+    
     # edit page in notion database
     def notion_parse_text_content(self, text_content, header_content=None):
         """
@@ -279,19 +303,31 @@ class ResearchAssistant:
 
     def notion_create_new_page(self, author=None, year=None, title=None, summary=None):
         """
-        creates a new entry to a given notion database. The database ID is provided by settings.csv. The database si expected to have columns "Author", "Year", and "Title"
+        creates a new entry to a given notion database. The database ID is provided by settings.csv.
+        The database is expected to have columns "Author", "Year", "Title", "Added" und "Tags".
+        To work properly, make sure the properties of your Notion Database are correctly defined:
+            Autor: Title (Aa)
+            Year: Number (#)
+            Title: Text (<lines symbol>)
+            Added: Date (<calender symbol>)
+            Tags: Text (<lines symbol>)
         """
+        
         create_url = 'https://api.notion.com/v1/pages'
 
         author = author if author is not None else self.paper_metrices['author']
         year = year if year is not None else self.paper_metrices['year']
         title = title if title is not None else self.paper_metrices['title']
+        added = date.today().isoformat()
         summary = summary if summary is not None else self.summary
-
+        tags = tags if tags is not None else self.settings['Notion_Document_Tags']
+        
         properties = {
             "Author": {"title": [{"text": {"content": author}}]},
             "Year": {"number": year},
-            "Title": {"rich_text": [{"text": {"content": title}}]}
+            "Title": {"rich_text": [{"text": {"content": title}}]},
+            "Added": {"date": {"start": added}},
+            "Tags": {"rich_text": [{"text": {"content": self.notion_create_tags(summary, tags)}}]} 
             }
 
         children = self.notion_parse_text_content(summary, header_content=title)
