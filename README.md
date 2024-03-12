@@ -65,7 +65,7 @@ To work properly, make sure the properties of your Notion Database are correctly
 
 ### document tags
 If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGPT to assign 1-3 out of the provided labels to the paper being processed. That is, it is benefitial to provide many different and distinct labels that the model can choose from. This feature may help keep your papers organized. Although the labels are provided in a single text string, it is possible to convert these to proper tags in Notion by simply changing the property of the column to *multi-select*. <br><br>
-**Note:** When you change the properties of a column in Notion (i.e. from *text* to *number* or *multi-select*) the script will fail to find this column in future processings! To avoid this, you have to re-change the column property bpck to the original property that the script expects (the ones presented above).
+**Note:** When you change the properties of a column in Notion (i.e. from *text* to *number* or *multi-select*) the script will fail to find this column in future processings! To avoid this, you have to re-change the column property back to the original property that the script expects (the ones presented above).
 
 
 ## Requirements
