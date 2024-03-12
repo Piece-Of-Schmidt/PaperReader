@@ -52,7 +52,6 @@ To work properly, make sure the properties of your Notion Database are correctly
 * Year: Number - *#*
 * Title: Text - *lines symbol*
 * Added: Date - *calender symbol*
-
 * Project: Text - *lines symbol*
 * Tags: Text - *lines symbol*
 
