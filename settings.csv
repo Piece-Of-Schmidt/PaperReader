@@ -20,6 +20,7 @@ Newsletter_Prompt,You are a content creator for scientific newsletters. Please r
 Notion_Version,2022-06-28
 Notion_Token,<place Notion Secret Token here>
 Notion_Database_Id,<place Notion Database ID here>
+Notion_Project_Name,""
 Notion_Document_Tags,""
 File_Directory,Papers
 Destination_Directory,Outputs
