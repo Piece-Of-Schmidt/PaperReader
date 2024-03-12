@@ -40,19 +40,16 @@ pip install -r requirements.txt
 - Many settings (such as the output language, the OpenAI model, your API Keys, the audio voice, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
+The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. 
 
 ### get those keys
-The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. Learn how to get both keys here:
+Learn how to get both keys here:
 
 https://developers.notion.com/docs/create-a-notion-integration
 
 ### column names
 To make sure everything works fine, make sure the columns in your notion database are named *Author*, *Year*, *Title*, and *Added*. <br>
-If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the database. This will only work, however, if the respective columns already exist in the Database, too. Therefore, you need to create the columns "Project" and "Tags" when you want the script to include these information.<br>
-
-### document tags
-If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGPT to assign 1-3 out of the provided labels to the paper being processed. That is, it is benefitial to provide many different and distinct possible labels that the model can choose from. This feature may help keep your papers organized. Although the labels are provided in a single text string, it is possible to convert these to proper tags in Notion by just changing the property of the column to *multi-select*. <br><br>
-**Note:** When you change the properties of a column in Notion (i.e. from *text* to *number* or *multi-select*) the script will fail at finding the column in future processings
+If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the database. This will only work, however, if the respective columns already exist in the Database, too. Therefore, you need to create the columns *Project* and *Tags* when you want the script to include these information.<br>
 
 ### column properties
 To work properly, make sure the properties of your Notion Database are correctly defined
@@ -62,6 +59,11 @@ To work properly, make sure the properties of your Notion Database are correctly
 * Added: Date - *calender symbol*
 * Project: Text - *lines symbol*
 * Tags: Text - *lines symbol*
+
+### document tags
+If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGPT to assign 1-3 out of the provided labels to the paper being processed. That is, it is benefitial to provide many different and distinct possible labels that the model can choose from. This feature may help keep your papers organized. Although the labels are provided in a single text string, it is possible to convert these to proper tags in Notion by just changing the property of the column to *multi-select*. <br><br>
+**Note:** When you change the properties of a column in Notion (i.e. from *text* to *number* or *multi-select*) the script will fail at finding the column in future processings
+
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
 
