@@ -86,20 +86,27 @@ class ResearchAssistant:
             print(f"Error reading PDF {path}: {e}")
             self.paper = None
 
-    def get_paper_metrices(self, paper_title=None):
+    def get_paper_metrices(self, paper_title=None, project_name=None):
         """
         Extracts information about author, publication date and paper title from document name.
         If the document name does not contain these information (according on regex matching),
         ChatGPT (the concrete model being specified in the settings['GPT_Newsletter_Model']) tries to guess these information.
+        Adds the project name provided in settings.csv to the metrices. 
         """
+
+        # read project name from settings
+        project_name = project_name if project_name is not None else self.settings['Notion_Project_Name']
+
         # regex
         pattern = r'^(?P<author>.+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
         match = re.match(pattern, paper_title)
         
+        # search for regex in document name
         if match:
             metrices = match.groupdict()
             metrices['year'] = int(metrices['year'])  # year to integer
-            
+
+        # if pattern is not found: ask LLM to predict values    
         else:
             instruction = 'Please extract from the following text the information about the author(s), the publishing year and the title. Provide the information in the following format: author (year) title'
             prompt = self.paper[:1000] 
@@ -120,9 +127,13 @@ class ResearchAssistant:
             except Exception as e:
                 print(f"Error creating newsletter: {e}")
         
+        # add project name from settings.csv
+        metrices['project_name'] = project_name
+
         self.paper_metrices = metrices
     
 
+    # create summary based on paper
     def create_summary(self):
         """
         Creates a summary of the provided text.
@@ -150,6 +161,7 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error creating summary: {e}")
 
+    # save summary locally
     def save_summary(self, filename):
         """
         Saves the created summary locally.
@@ -253,6 +265,7 @@ class ResearchAssistant:
             "Notion-Version": self.settings['Notion_Version']
         }    
 
+    # create tags
     def notion_create_tags(self, summary=None, tags=""):
         """
         Assigns 1-3 tags to the created article summary based on the tags provided in settings.csv
@@ -301,7 +314,8 @@ class ResearchAssistant:
         return blocks
     
 
-    def notion_create_new_page(self, author=None, year=None, title=None, summary=None, tags=None):
+    # create new entry to notion database
+    def notion_create_new_page(self, author=None, year=None, title=None, summary=None, project_name=None, tags=None):
         """
         creates a new entry to a given notion database. The database ID is provided by settings.csv.
         The database is expected to have columns "Author", "Year", "Title", "Added" und "Tags".
@@ -315,23 +329,30 @@ class ResearchAssistant:
         
         create_url = 'https://api.notion.com/v1/pages'
 
+        # get paper metrices from self.paper_metrices and from settings
         author = author if author is not None else self.paper_metrices['author']
         year = year if year is not None else self.paper_metrices['year']
         title = title if title is not None else self.paper_metrices['title']
         added = date.today().isoformat()
         summary = summary if summary is not None else self.summary
+        project_name = project_name if project_name is not None else self.paper_metrices['project_name']
         tags = tags if tags is not None else self.settings['Notion_Document_Tags']
         
         properties = {
             "Author": {"title": [{"text": {"content": author}}]},
             "Year": {"number": year},
             "Title": {"rich_text": [{"text": {"content": title}}]},
-            "Added": {"date": {"start": added}},
-            "Tags": {"rich_text": [{"text": {"content": self.notion_create_tags(summary, tags)}}]} 
+            "Added": {"date": {"start": added}}, 
             }
+        
+        # add project name and tags if provided
+        if len(project_name) > 0: properties["Project"] = {"rich_text": [{"text": {"content": project_name}}]}
+        if len(tags) > 0: properties["Tags"] = {"rich_text": [{"text": {"content": self.notion_create_tags(summary, tags)}}]}
 
+        # parse summary (split it into paragraphs that fit into Notion block size)
         children = self.notion_parse_text_content(summary, header_content=title)
 
+        # push to Notion
         payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": properties, "children": children}
         response = requests.post(create_url, headers=self.notion_header, json=payload)
         if response.status_code == 200:
