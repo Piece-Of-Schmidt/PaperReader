@@ -49,7 +49,7 @@ To work properly, make sure the properties of your Notion Database are correctly
 * Autor: Title (Aa)
 * Year: Number (#)
 * Title: Text (<lines symbol>)
-* Added: Date <img src="https://img.icons8.com/ios/250/000000/calendar.png" width="20" height="20"> 
+* Added: Date (<calender symbol> 
 * Tags: Text (<lines symbol>)
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
