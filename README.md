@@ -44,12 +44,16 @@ The app allows an upload of all summaries to a Notion Database. To use this inte
 
 https://developers.notion.com/docs/create-a-notion-integration
 <br><br>
-To make sure everything works fine, make sure the columns in your notion database are named "Author", "Year", "Title", "Added", and "Tags". <br>
+To make sure everything works fine, make sure the columns in your notion database are named "Author", "Year", "Title", and "Added". <br>
+If "Notion_Project_Name" and/or "Notion_Document_Tags" in `settings.csv` are non-empty strings the code tries to add those values to the database. This will only work, however, if the respective columns already exist in the Database. Therefore, you need to create the columns "Project" and "Tags" when you want the script to include these information.<br>
+
 To work properly, make sure the properties of your Notion Database are correctly defined
 * Autor: Title - *Aa*
 * Year: Number - *#*
 * Title: Text - *lines symbol*
 * Added: Date - *calender symbol*
+
+* Project: Text - *lines symbol*
 * Tags: Text - *lines symbol*
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
