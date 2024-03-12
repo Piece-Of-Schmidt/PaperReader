@@ -48,7 +48,7 @@ To make sure everything works fine, make sure the columns in your notion databas
 To work properly, make sure the properties of your Notion Database are correctly defined
 * Autor: Title - *Aa*
 * Year: Number - *#*
-* Title: Text - *list symbol*
+* Title: Text - *lines symbol*
 * Added: Date - *calender symbol*
 * Tags: Text - *list symbol*
 
