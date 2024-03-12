@@ -52,7 +52,7 @@ To make sure everything works fine, make sure the columns in your notion databas
 If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the Database, too. This will only work, however, if the respective columns already exist in the Database. Therefore, you also need to create the columns *Project* and *Tags* when you want the script to include these information.
 
 
-If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with Notion (promise).
+If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with Notion. (promise!)
 
 ### column properties
 To work properly, make sure the properties of your Notion Database are correctly defined
@@ -64,7 +64,7 @@ To work properly, make sure the properties of your Notion Database are correctly
 * Tags: Text - *lines symbol*
 
 ### document tags
-If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGPT to assign 1-3 out of the provided labels to the paper being processed. That is, it is benefitial to provide many different and distinct possible labels that the model can choose from. This feature may help keep your papers organized. Although the labels are provided in a single text string, it is possible to convert these to proper tags in Notion by simply changing the property of the column to *multi-select*. <br><br>
+If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGPT to assign 1-3 out of the provided labels to the paper being processed. That is, it is benefitial to provide many different and distinct labels that the model can choose from. This feature may help keep your papers organized. Although the labels are provided in a single text string, it is possible to convert these to proper tags in Notion by simply changing the property of the column to *multi-select*. <br><br>
 **Note:** When you change the properties of a column in Notion (i.e. from *text* to *number* or *multi-select*) the script will fail to find this column in future processings! To avoid this, you have to re-change the column property bpck to the original property that the script expects (the ones presented above).
 
 
