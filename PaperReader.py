@@ -54,6 +54,8 @@ class ResearchAssistant:
         self.notion_page_id = None
         self.paper_metrices = None
 
+
+    # read settings file
     def read_settings(self, path='settings.csv'):
         """
         Reads the function settings from a CSV file.
@@ -68,6 +70,8 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error: {e}")
 
+
+    # load PDF into python
     def read_pdf(self, path, remove_references=True):
         """
         Reads and processes a PDF file from the given path.
@@ -86,6 +90,8 @@ class ResearchAssistant:
             print(f"Error reading PDF {path}: {e}")
             self.paper = None
 
+
+    # get all relevant information about the paper being processed (author, publishing year, and title, as well as a custom project name)
     def get_paper_metrices(self, paper_title=None, project_name=None):
         """
         Extracts information about author, publication date and paper title from document name.
@@ -161,6 +167,7 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error creating summary: {e}")
 
+
     # save summary locally
     def save_summary(self, filename):
         """
@@ -172,6 +179,7 @@ class ResearchAssistant:
                     file.write(self.summary)
             except Exception as e:
                 print(f"Error saving summary: {e}")
+
 
     # create audio file
     def create_audio_from_summary(self, filename):
@@ -194,6 +202,7 @@ class ResearchAssistant:
         except Exception as e:
             print(f"Error creating audio: {e}")
 
+
     # if newsletter: replace e mail body text with automatically generated newletter text
     def replace_mail_body_with_newsletter_text(self):
         """
@@ -215,6 +224,7 @@ class ResearchAssistant:
             self.settings['Email_Body'] = newsletter_text
         except Exception as e:
             print(f"Error creating newsletter: {e}")
+
 
     # method for sending email with attachments
     def send_email(self, include_pdf_portfolio=False):
@@ -265,6 +275,7 @@ class ResearchAssistant:
             "Notion-Version": self.settings['Notion_Version']
         }    
 
+
     # create tags
     def notion_create_tags(self, summary=None, tags=""):
         """
@@ -289,6 +300,7 @@ class ResearchAssistant:
 
         return tags
     
+
     # edit page in notion database
     def notion_parse_text_content(self, text_content, header_content=None):
         """
@@ -381,6 +393,7 @@ class ResearchAssistant:
         # PDF lokal speichern
         pdf.output(os.path.join(self.settings['Destination_Directory'], 'Portfolio.pdf'))
 
+
     # complete loop
     def read_and_summarize_pdf(self, remove_after_process=True):
 
@@ -448,6 +461,8 @@ class ResearchAssistant:
         if sendmail:
             print('send mail')
             self.send_email(include_pdf_portfolio=build_portfolio)
+
+
 
 # run code
 assi = ResearchAssistant('settings.csv', portfolio_maker=PDF())
