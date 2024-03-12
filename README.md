@@ -46,11 +46,11 @@ https://developers.notion.com/docs/create-a-notion-integration
 <br><br>
 To make sure everything works fine, make sure the columns in your notion database are named "Author", "Year", "Title", "Added", and "Tags". <br>
 To work properly, make sure the properties of your Notion Database are correctly defined
-* Autor: Title &emsp; *Aa*
-* Year: Number &emsp; *#*
-* Title: Text &emsp; *lines symbol*
-* Added: Date &emsp; *list symbol*
-* Tags: Text &emsp; *lines symbol*
+* Autor: Title - *Aa*
+* Year: Number - *#*
+* Title: Text - *lines symbol*
+* Added: Date - *list symbol*
+* Tags: Text - *lines symbol*
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
 
