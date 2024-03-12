@@ -301,7 +301,7 @@ class ResearchAssistant:
         return blocks
     
 
-    def notion_create_new_page(self, author=None, year=None, title=None, summary=None):
+    def notion_create_new_page(self, author=None, year=None, title=None, summary=None, tags=None):
         """
         creates a new entry to a given notion database. The database ID is provided by settings.csv.
         The database is expected to have columns "Author", "Year", "Title", "Added" und "Tags".
