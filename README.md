@@ -48,9 +48,9 @@ To make sure everything works fine, make sure the columns in your notion databas
 To work properly, make sure the properties of your Notion Database are correctly defined
 * Autor: Title - *Aa*
 * Year: Number - *#*
-* Title: Text - *lines symbol*
-* Added: Date - *list symbol*
-* Tags: Text - *lines symbol*
+* Title: Text - *list symbol*
+* Added: Date - *calender symbol*
+* Tags: Text - *list symbol*
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
 
