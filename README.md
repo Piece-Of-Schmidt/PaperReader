@@ -49,7 +49,7 @@ To work properly, make sure the properties of your Notion Database are correctly
 * Autor: Title (Aa)
 * Year: Number (#)
 * Title: Text (<lines symbol>)
-* Added: Date (![calendar](https://github.com/Piece-Of-Schmidt/PaperReader/assets/106234803/af0247e3-8824-4d59-a0f4-abec20980f13) | width=10)
+* Added: Date ![calendar](https://github.com/Piece-Of-Schmidt/PaperReader/assets/106234803/af0247e3-8824-4d59-a0f4-abec20980f13 | width=10)
 * Tags: Text (<lines symbol>)
 
 If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
