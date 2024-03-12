@@ -44,7 +44,15 @@ The app allows an upload of all summaries to a Notion Database. To use this inte
 
 https://developers.notion.com/docs/create-a-notion-integration
 <br><br>
-To make sure everything works fine, make sure the columns in your notion database are named "author", "year", and "title". If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
+To make sure everything works fine, make sure the columns in your notion database are named "Author", "Year", "Title", "Added", and "Tags". <br>
+To work properly, make sure the properties of your Notion Database are correctly defined
+* Autor: Title (Aa)
+* Year: Number (#)
+* Title: Text (<lines symbol>)
+* Added: Date (![calendar](https://github.com/Piece-Of-Schmidt/PaperReader/assets/106234803/af0247e3-8824-4d59-a0f4-abec20980f13))
+* Tags: Text (<lines symbol>)
+
+If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
 
 ## Requirements
 
