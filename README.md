@@ -48,8 +48,8 @@ To make sure everything works fine, make sure the columns in your notion databas
 If "Notion_Project_Name" and/or "Notion_Document_Tags" in `settings.csv` are non-empty strings the code tries to add those values to the database. This will only work, however, if the respective columns already exist in the Database. Therefore, you need to create the columns "Project" and "Tags" when you want the script to include these information.<br>
 
 To work properly, make sure the properties of your Notion Database are correctly defined
-* Autor: Title - *Aa*
-* Year: Number - *#*
+* Autor: Title - *Aa symbol*
+* Year: Number - *# symbol*
 * Title: Text - *lines symbol*
 * Added: Date - *calender symbol*
 * Project: Text - *lines symbol*
