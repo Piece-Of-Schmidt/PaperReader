@@ -40,7 +40,7 @@ pip install -r requirements.txt
 - Many settings (such as the output language, the OpenAI model, your API Keys, the audio voice, the LLM prompts, Notion connection etc.) can be modified in `settings.csv`
 
 ## Notion integration
-The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target database. 
+The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target Database. 
 
 ### get those keys
 Learn how to get both keys here:
@@ -49,10 +49,10 @@ https://developers.notion.com/docs/create-a-notion-integration
 
 ### column names
 To make sure everything works fine, make sure the columns in your notion database are named *Author*, *Year*, *Title*, and *Added*. <br>
-If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the Database, too. This will only work, however, if the respective columns already exist in the Database. Therefore, you also need to create the columns *Project* and *Tags*, when you want the script to include these information.
+If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the Database, too. This will only work, however, if the respective columns already exist in the Database. Therefore, you also need to create the columns *Project* and *Tags* when you want the script to include these information.
 
 
-If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with notion.
+If you need different or more columns, you will need to change the code. In future versions of this project it will be made easier to interact with Notion (promise).
 
 ### column properties
 To work properly, make sure the properties of your Notion Database are correctly defined
