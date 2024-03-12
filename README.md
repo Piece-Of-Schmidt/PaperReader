@@ -49,7 +49,7 @@ https://developers.notion.com/docs/create-a-notion-integration
 
 ### column names
 To make sure everything works fine, make sure the columns in your notion database are named *Author*, *Year*, *Title*, and *Added*. <br>
-If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the database. This will only work, however, if the respective columns already exist in the Database, too. Therefore, you need to create the columns *Project* and *Tags* when you want the script to include these information.<br>
+If `Notion_Project_Name` and/or `Notion_Document_Tags` in `settings.csv` are non-empty strings, the code tries to add those values to the Database, too. This will only work, however, if the respective columns already exist in the Database. Therefore, you also need to create the columns *Project* and *Tags*, when you want the script to include these information.<br>
 
 ### column properties
 To work properly, make sure the properties of your Notion Database are correctly defined
