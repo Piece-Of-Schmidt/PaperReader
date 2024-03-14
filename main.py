@@ -111,7 +111,8 @@ for file_path in assi.files_to_read:
 # post-loop: create newsletter text based on all created summaries
 if create_newsletter and (len(assi.all_summaries)>0):
     print('create newsletter')
-    assi.replace_mail_body_with_newsletter_text()
+    newsletter_text = assi.create_newsletter_text()
+    assi.settings['Email_Body'] = newsletter_text
 
 # post-loop: create pdf portfolio based on all created summaries and save locally
 if build_portfolio and (len(assi.all_summaries)>0):
