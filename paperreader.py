@@ -160,27 +160,31 @@ class PaperReader:
             print(f"Error creating audio: {e}")
 
 
-    # if newsletter: replace e mail body text with automatically generated newletter text
-    def replace_mail_body_with_newsletter_text(self):
+    # if newsletter: make ChatGPT create a newletter text based on all text summaries
+    def create_newsletter_text(self, newsletter_text=None):
         """
-        Creates a newsletter text based on the summaries.
+        Creates a newsletter text based on the summaries that are stored in PaperReader.all_summaries. If a newsletter_text is given via function params, this text is used instead.
         """
-        lang = self.settings['Inference_Language']
-        suffix = f" Please answer in {lang}." if lang != "English" else ""
         
-        instruction = self.settings['Newsletter_Prompt']
-        prompt = ' \n\nNext text:\n\n'.join(self.all_summaries) + suffix
-        
-        try:
-            newsletter_text = self.client.chat.completions.create(
-                model = self.settings['GPT_Newsletter_Model'],
-                messages=[
-                    {"role": "system", "content": instruction},
-                    {"role": "user", "content": prompt}
-                ]).choices[0].message.content
-            self.settings['Email_Body'] = newsletter_text
-        except Exception as e:
-            print(f"Error creating newsletter: {e}")
+        if newsletter_text is None:
+            lang = self.settings['Inference_Language']
+            suffix = f" Please answer in {lang}." if lang != "English" else ""
+            
+            instruction = self.settings['Newsletter_Prompt']
+            prompt = ' \n\nNext text:\n\n'.join(self.all_summaries) + suffix
+            
+            try:
+                newsletter_text = self.client.chat.completions.create(
+                    model = self.settings['GPT_Newsletter_Model'],
+                    messages=[
+                        {"role": "system", "content": instruction},
+                        {"role": "user", "content": prompt}
+                    ]).choices[0].message.content
+                
+            except Exception as e:
+                print(f"Error creating newsletter: {e}")
+
+        return newsletter_text
 
 
     # method for sending email with attachments
