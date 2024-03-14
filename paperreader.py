@@ -161,28 +161,31 @@ class PaperReader:
 
 
     # if newsletter: make ChatGPT create a newletter text based on all text summaries
-    def create_newsletter_text(self, newsletter_text=None):
+    def create_newsletter_text(self, all_summaries=None):
         """
-        Creates a newsletter text based on the summaries that are stored in PaperReader.all_summaries. If a newsletter_text is given via function params, this text is used instead.
+        Creates a newsletter text based on the summaries that are stored in PaperReader.all_summaries. If a list of texts is provided via function arg, the function will use those instead. 
         """
         
-        if newsletter_text is None:
-            lang = self.settings['Inference_Language']
-            suffix = f" Please answer in {lang}." if lang != "English" else ""
+        # load all summaries
+        all_summaries = all_summaries if all_summaries is not None else self.all_summaries
+
+        # let ChatGPT create Newsletter text
+        lang = self.settings['Inference_Language']
+        suffix = f" Please answer in {lang}." if lang != "English" else ""
+        
+        instruction = self.settings['Newsletter_Prompt']
+        prompt = ' \n\nNext text:\n\n'.join(all_summaries) + suffix
+        
+        try:
+            newsletter_text = self.client.chat.completions.create(
+                model = self.settings['GPT_Newsletter_Model'],
+                messages=[
+                    {"role": "system", "content": instruction},
+                    {"role": "user", "content": prompt}
+                ]).choices[0].message.content
             
-            instruction = self.settings['Newsletter_Prompt']
-            prompt = ' \n\nNext text:\n\n'.join(self.all_summaries) + suffix
-            
-            try:
-                newsletter_text = self.client.chat.completions.create(
-                    model = self.settings['GPT_Newsletter_Model'],
-                    messages=[
-                        {"role": "system", "content": instruction},
-                        {"role": "user", "content": prompt}
-                    ]).choices[0].message.content
-                
-            except Exception as e:
-                print(f"Error creating newsletter: {e}")
+        except Exception as e:
+            print(f"Error creating newsletter: {e}")
 
         return newsletter_text
 
