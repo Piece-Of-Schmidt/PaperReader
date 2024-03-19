@@ -24,7 +24,7 @@ pip install -r requirements.txt
 1. **Download/Clone Respository**
 2. **Set Keys**: Replace `api_key` and all other placeholders in `settings.csv` with your own keys (i.e. OpenAI API, Notion Key, email settings etc.). The latter ones are only required when the respective values in settings (include_notion, send_email) are set to true.
 3. **"Upload" Papers**: Place the papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
-4. **"Notion Integration"**: If you want to make use of the Notion integration, prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
+4. **Notion Integration**: If you want to make use of the Notion integration, prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
 5. **Start process**: Run the `main.py` script or execute `read_paper.bat` to start the process.
 
 
