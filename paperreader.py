@@ -39,7 +39,8 @@ class PaperReader:
             self.paper = pages
 
             # extract paper metrices
-            self.get_paper_metrices(os.path.basename(path))
+            filename = os.path.splitext(os.path.basename(path))[0]
+            self.get_paper_metrices(filename)
 
         except Exception as e:
             print(f"Error reading PDF {path}: {e}")
@@ -91,10 +92,33 @@ class PaperReader:
         # add project name from settings.csv
         metrices['project_name'] = project_name
 
+        # get abstract
+        metrices['abstract'] = self.extract_abtract()
+
         # add summary and tags dummies
         metrices['summary'] = summary
 
         self.paper_metrices = metrices
+
+    # extract abstract from paper
+    def extract_abtract(self, paper=None):
+        """
+        Extracts the abstract from the paper being processed based on a simple regex search. 
+        """
+        paper = paper if paper is not None else self.paper
+
+        # use regex search to find summary
+        match = re.search('Abstract(.*)', paper, flags=re.S|re.I)
+
+        if match:
+            abstract = match.group().strip()[0:2000]+'...'
+            abstract = re.sub('(key( )?words|introduction)(.*)','', abstract, flags=re.S|re.I)
+            abstract = re.sub('\n|abstract', ' ', abstract, flags=re.I).strip()
+
+        else:
+            abstract = 'No abstract found.'
+
+        return abstract
 
     # create summary based on paper
     def create_summary(self):
