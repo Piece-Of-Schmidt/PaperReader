@@ -86,7 +86,7 @@ class PaperReader:
                 metrices['year'] = int(metrices['year'])  # year to integer
 
             except Exception as e:
-                print(f"Error creating newsletter: {e}")
+                print(f"Error extracting paper metrices: {e}")
         
         # add project name from settings.csv
         metrices['project_name'] = project_name
