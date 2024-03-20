@@ -25,9 +25,8 @@ class NotionManager:
         required_keys = ['author', 'year', 'title', 'summary']
         missing_keys = [key for key in required_keys if key not in self.paper_metrices or not self.paper_metrices[key]]
         
-        # Check for missing keys
-        if missing_keys:
-            raise ValueError(f"Missing required paper metrices: {', '.join(missing_keys)}")
+        for key in missing_keys:
+            self.paper_metrices[key] = 'not provided' 
 
         # Ensure 'year' is an integer
         if not isinstance(self.paper_metrices['year'], int):
@@ -60,6 +59,7 @@ class NotionManager:
             "Title": {"rich_text": {}},
             "Added": {"date": {}},
             "Project": {"rich_text": {}},
+            "Abstract": {"rich_text": {}},
             "Tags": {"rich_text": {}},
             "Notes": {"rich_text": {}},
             # Add other properties as needed
@@ -81,7 +81,7 @@ class NotionManager:
                 print("Fehler beim Hinzufügen fehlender Spalten:", response.text)
 
     # edit page in notion database
-    def parse_text_content(self, text_content, header_content=None):
+    def parse_text_content(self, text_content, title=None):
         """
         transforms summary to correct format
         """
@@ -89,8 +89,8 @@ class NotionManager:
         blocks = []
         
         # build headline
-        if header_content:
-            header = {'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [{'type': 'text', 'text': {'content': header_content}, 'annotations': {'bold': True}}]}}
+        if title:
+            header = {'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [{'type': 'text', 'text': {'content': title}, 'annotations': {'bold': True}}]}}
             blocks.append(header)
         
         # build text content as paragraph blocks
@@ -106,17 +106,18 @@ class NotionManager:
     
 
     # create new entry to notion database
-    def add_paper_to_database(self, author=None, year=None, title=None, summary=None, project_name=None, tags_list=None):
+    def add_paper_to_database(self, author=None, year=None, title=None, summary=None, project_name=None, abstract=None, tags_list=None):
         """
         creates a new entry to a given notion database. The database ID is provided by settings.csv.
         The database is expected to have columns "Author", "Year", "Title", "Added" und "Tags".
         To work properly, make sure the properties of your Notion Database are correctly defined:
             Autor: Title (Aa)
             Year: Number (#)
-            Title: Text (<lines symbol>)
+            Title: Rich Text (<lines symbol>)
             Added: Date (<calender symbol>)
-            Project: Text (<lines symbol>)
-            Tags: Text (<lines symbol>)
+            Project: Rich Text (<lines symbol>)
+            Abstract: Rich Text (<lines symbol>)
+            Tags: Rich Text (<lines symbol>)
         If the columns are missing or of the wrong property, the code will create the columns automatically.
         """
         
@@ -132,13 +133,15 @@ class NotionManager:
         added = date.today().isoformat()
         summary = summary if summary is not None else self.paper_metrices['summary']
         project_name = project_name if project_name is not None else self.paper_metrices['project_name']
+        abstract = abstract if abstract is not None else self.paper_metrices['abstract']
         tags_list = tags_list if tags_list is not None else self.settings['Notion_Document_Tags']
         
         properties = {
             "Author": {"title": [{"text": {"content": author}}]},
             "Year": {"number": year},
             "Title": {"rich_text": [{"text": {"content": title}}]},
-            "Added": {"date": {"start": added}}, 
+            "Added": {"date": {"start": added}},
+            "Abstract": {"rich_text": [{"text": {"content": abstract}}]},
             }
         
         # add project name and tags if provided
@@ -148,7 +151,7 @@ class NotionManager:
             properties["Tags"] = {"rich_text": [{"text": {"content": tags}}]}
 
         # parse summary (split it into paragraphs that fit into Notion block size)
-        children = self.parse_text_content(summary, header_content=title)
+        children = self.parse_text_content(summary, title=title)
 
         # push to Notion
         payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": properties, "children": children}
