@@ -1,4 +1,5 @@
 Setting,Value
+create_summary,True
 create_audio,True
 build_portfolio,True
 create_newsletter,False
