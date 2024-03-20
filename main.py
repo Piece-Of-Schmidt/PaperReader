@@ -83,13 +83,20 @@ for file_path in assi.files_to_read:
     assi.read_pdf(path = file_path)
 
     # create summary
-    print('create summary')
-    assi.create_summary()
+    if create_summary:
+        print('create summary')
+        assi.create_summary()
 
-    # save summary locally
-    print('save summary locally')
-    filename = os.path.join(destdir, root_name + ".txt")
-    assi.save_summary(filename = filename)
+        # save summary locally
+        print('save summary locally')
+        filename = os.path.join(destdir, root_name + ".txt")
+        assi.save_summary(filename = filename)
+
+    # create audio from summary
+    if create_summary and create_audio:
+        print('create audio file')
+        filename = os.path.join(destdir, root_name)
+        assi.create_audio_from_summary(filename = filename)
 
     # create audio from summary
     if create_audio:
