@@ -43,6 +43,7 @@ assi = PaperReader(settings, OpenAIclient)
 
 # dim vars
 destdir = settings["Destination_Directory"]
+create_summary = settings["create_summary"].lower() == 'true'
 create_audio = settings["create_audio"].lower() == 'true'
 include_notion = settings["include_notion"].lower() == 'true'
 build_portfolio = settings["build_portfolio"].lower() == 'true'
