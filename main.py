@@ -99,12 +99,6 @@ for file_path in assi.files_to_read:
         filename = os.path.join(destdir, root_name)
         assi.create_audio_from_summary(filename = filename)
 
-    # create audio from summary
-    if create_audio:
-        print('create audio file')
-        filename = os.path.join(destdir, root_name)
-        assi.create_audio_from_summary(filename = filename)
-
     # add summary to notion page
     if include_notion:
         print('append Notion page')
