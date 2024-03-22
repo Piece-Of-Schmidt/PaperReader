@@ -112,8 +112,8 @@ class PaperReader:
 
         if match:
             abstract = match.group().strip()[0:2000]+'...'
-            abstract = re.sub('(key( )?words|introduction)(.*)','', abstract, flags=re.S|re.I)
-            abstract = re.sub('\n|abstract', ' ', abstract, flags=re.I).strip()
+            abstract = re.sub('(\nkey( )?words|\nintroduction)(.*)','', abstract, flags=re.S|re.I)
+            abstract = re.sub('\n(abstract)?', ' ', abstract, flags=re.I).strip()
 
         else:
             abstract = 'No abstract found.'
