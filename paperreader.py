@@ -105,15 +105,16 @@ class PaperReader:
         """
         Extracts the abstract from the paper being processed based on a simple regex search. 
         """
-        paper = paper if paper is not None else self.paper
 
+        paper = paper if paper is not None else self.paper
+        
         # use regex search to find summary
         match = re.search('Abstract(.*)', paper, flags=re.S|re.I)
 
         if match:
-            abstract = match.group().strip()[0:2000]+'...'
+            abstract = match.group().strip()[0:1995]+'...'
             abstract = re.sub('(\nkey( )?words|\nintroduction)(.*)','', abstract, flags=re.S|re.I)
-            abstract = re.sub('\n(abstract)?', ' ', abstract, flags=re.I).strip()
+            abstract = re.sub('^abstract', '', abstract, flags=re.I).strip()
 
         else:
             abstract = 'No abstract found.'
