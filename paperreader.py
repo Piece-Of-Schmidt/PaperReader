@@ -3,15 +3,19 @@ import glob
 import re
 import random
 import smtplib
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from PyPDF2 import PdfReader
+from PyPDF2.errors import PdfReadError
+
+# Konfiguration des Logging-Moduls
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
 
 
 class PaperReader:
-
     def __init__(self, settings, OpenAIclient=None):
         self.settings = settings
         self.client = OpenAIclient
@@ -20,12 +24,10 @@ class PaperReader:
         self.all_summaries = []
         self.audio = None
         self.paper_metrices = None
-        
 
-    # load PDF into python
     def read_pdf(self, path, remove_references=True):
         """
-        Reads and processes a PDF file from the given path.
+        Liest und verarbeitet eine PDF-Datei vom angegebenen Pfad.
         """
         try:
             reader = PdfReader(path)
@@ -34,222 +36,230 @@ class PaperReader:
             pages = re.sub(self.settings["Exclude_Pattern"], '', pages)
 
             if remove_references:
-                pages = re.sub('(\n)?References(\n)?.*', '', pages, flags=re.DOTALL)
+                pages = re.sub(r'(\n)?References(\n)?.*', '', pages, flags=re.DOTALL)
 
             self.paper = pages
 
-            # extract paper metrices
+            # Extrahiere Paper-Metriken
             filename = os.path.splitext(os.path.basename(path))[0]
             self.get_paper_metrices(filename)
 
+        except FileNotFoundError as e:
+            logging.error(f"PDF-Datei nicht gefunden {path}: {e}")
+            self.paper = None
+        except PdfReadError as e:
+            logging.error(f"Fehler beim Lesen der PDF-Datei {path}: {e}")
+            self.paper = None
         except Exception as e:
-            print(f"Error reading PDF {path}: {e}")
-            self.paper = None    
+            logging.exception(f"Unerwarteter Fehler beim Lesen der PDF-Datei {path}: {e}")
+            self.paper = None
 
-
-    # get all relevant information about the paper being processed (author, publishing year, and title, as well as a custom project name)
     def get_paper_metrices(self, paper_title=None, project_name=None, summary=None):
         """
-        Extracts information about author, publication date and paper title from document name.
-        If the document name does not contain these information (according on regex matching),
-        ChatGPT (the concrete model being specified in the settings['GPT_Newsletter_Model']) tries to guess these information.
-        Adds the project name provided in settings.csv to the metrices. 
+        Extrahiert Informationen über Autor, Veröffentlichungsjahr und Titel aus dem Dokumentnamen.
+        Wenn diese Informationen nicht im Dokumentnamen enthalten sind, versucht das LLM, diese zu schätzen.
+        Fügt den Projektnamen aus settings.csv zu den Metriken hinzu.
         """
+        # Lese Projektname aus den Einstellungen
+        project_name = project_name if project_name is not None else self.settings.get('Notion_Project_Name', '')
 
-        # read project name from settings
-        project_name = project_name if project_name is not None else self.settings['Notion_Project_Name']
-
-        # regex
+        # Regex-Muster zur Extraktion von Autor, Jahr und Titel
         pattern = r'^(?P<author>.+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
         match = re.match(pattern, paper_title)
-        
-        # search for regex in document name
+
+        metrices = {}
+        # Suche nach Regex im Dokumentnamen
         if match:
             metrices = match.groupdict()
-            metrices['year'] = int(metrices['year'])  # year to integer
-
-        # if pattern is not found: ask LLM to predict values    
+            metrices['year'] = int(metrices['year'])  # Jahr als Integer
         else:
             instruction = 'Please extract from the following text the information about the author(s), the publishing year and the title. Provide the information in the following format: author (year) title'
-            prompt = self.paper[:1000] 
-        
+            prompt = self.paper[:1000]
+
             try:
-                metrices = self.client.chat.completions.create(
-                    model = self.settings['GPT_Newsletter_Model'],
+                response = self.client.chat.completions.create(
+                    model=self.settings.get('GPT_Newsletter_Model'),
                     messages=[
                         {"role": "system", "content": instruction},
                         {"role": "user", "content": prompt}
-                    ]).choices[0].message.content
-                
-                metrices = re.match(pattern, metrices)
-                metrices = metrices.groupdict()
-
-                metrices['year'] = int(metrices['year'])  # year to integer
-
+                    ]
+                )
+                content = response.choices[0].message.content.strip()
+                match = re.match(pattern, content)
+                if match:
+                    metrices = match.groupdict()
+                    metrices['year'] = int(metrices['year'])  # Jahr als Integer
+                else:
+                    logging.warning("Das LLM konnte die Metadaten nicht korrekt extrahieren.")
+                    metrices = {'author': 'Unknown', 'year': 0, 'title': 'Unknown'}
             except Exception as e:
-                print(f"Error extracting paper metrices: {e}")
-        
-        # add project name from settings.csv
+                logging.error(f"Fehler beim Extrahieren der Paper-Metriken: {e}")
+                metrices = {'author': 'Unknown', 'year': 0, 'title': 'Unknown'}
+
+        # Füge Projektnamen aus settings.csv hinzu
         metrices['project_name'] = project_name
 
-        # get abstract
-        metrices['abstract'] = self.extract_abtract()
+        # Extrahiere Abstract
+        metrices['abstract'] = self.extract_abstract()
 
-        # add summary and tags dummies
+        # Füge Platzhalter für Zusammenfassung und Tags hinzu
         metrices['summary'] = summary
 
         self.paper_metrices = metrices
 
-    # extract abstract from paper
-    def extract_abtract(self, paper=None):
+    def extract_abstract(self, paper=None):
         """
-        Extracts the abstract from the paper being processed based on a simple regex search. 
+        Extrahiert den Abstract aus dem zu verarbeitenden Paper basierend auf einer einfachen Regex-Suche.
         """
-
         paper = paper if paper is not None else self.paper
-        
-        # use regex search to find summary
-        match = re.search('Abstract(.*)', paper, flags=re.S|re.I)
+
+        # Suche nach 'Abstract' im Text
+        match = re.search(r'Abstract(.*?)(\n\n|\Z)', paper, flags=re.S | re.I)
 
         if match:
-            abstract = match.group().strip()[0:1995]+'...'
-            abstract = re.sub('(\nkey( )?words|\nintroduction)(.*)','', abstract, flags=re.S|re.I)
-            abstract = re.sub('^abstract', '', abstract, flags=re.I).strip()
-
+            abstract = match.group(1).strip()[:1995] + '...'
+            abstract = re.sub(r'(\nkey( )?words|\nintroduction)(.*)', '', abstract, flags=re.S | re.I)
+            abstract = re.sub(r'^abstract', '', abstract, flags=re.I).strip()
         else:
             abstract = 'No abstract found.'
 
         return abstract
 
-    # create summary based on paper
     def create_summary(self):
         """
-        Creates a summary of the provided text.
+        Erstellt eine Zusammenfassung des bereitgestellten Textes.
         """
         if not self.paper:
-            print("No PDF file available.")
+            logging.warning("Keine PDF-Datei verfügbar.")
             return
-        
-        lang = self.settings['Inference_Language']
+
+        lang = self.settings.get('Inference_Language', 'English')
         suffix = f" Please answer in {lang}." if lang != "English" else ""
-        
-        instruction = self.settings["LLM_Instruction"]
-        prompt = f"{self.settings['LLM_Prompt']}{suffix} \n\n {self.paper}"
-        
+
+        instruction = self.settings.get("LLM_Instruction", "")
+        prompt = f"{self.settings.get('LLM_Prompt', '')}{suffix} \n\n {self.paper}"
+
         try:
-            summary = self.client.chat.completions.create(
-                model = self.settings["GPT_Summarizer_Model"],
+            response = self.client.chat.completions.create(
+                model=self.settings.get("GPT_Summarizer_Model"),
                 messages=[
                     {"role": "system", "content": instruction},
                     {"role": "user", "content": prompt}
                 ]
-            ).choices[0].message.content
+            )
+            summary = response.choices[0].message.content.strip()
             self.paper_metrices['summary'] = summary
             self.all_summaries.append(summary)
         except Exception as e:
-            print(f"Error creating summary: {e}")
+            logging.error(f"Fehler beim Erstellen der Zusammenfassung: {e}")
 
-
-    # save summary locally
     def save_summary(self, filename):
         """
-        Saves the created summary locally.
+        Speichert die erstellte Zusammenfassung lokal.
         """
-        if self.paper_metrices['summary']:
+        summary = self.paper_metrices.get('summary')
+        if summary:
             try:
-                with open(filename, 'w') as file:
-                    file.write(self.paper_metrices['summary'])
+                with open(filename, 'w', encoding='utf-8') as file:
+                    file.write(summary)
             except Exception as e:
-                print(f"Error saving summary: {e}")
+                logging.error(f"Fehler beim Speichern der Zusammenfassung: {e}")
+        else:
+            logging.warning("Keine Zusammenfassung zum Speichern vorhanden.")
 
-
-    # create audio file
     def create_audio_from_summary(self, filename):
         """
-        Creates an audio file based on the created summary and saves it locally.
+        Erstellt eine Audiodatei basierend auf der erstellten Zusammenfassung und speichert sie lokal.
         """
-        if not self.paper_metrices['summary']:
-            print("No summary available to create audio.")
+        summary = self.paper_metrices.get('summary')
+        if not summary:
+            logging.warning("Keine Zusammenfassung verfügbar, um Audio zu erstellen.")
             return
 
         try:
-            voice = random.choice(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']) if self.settings['TTS_Voice'] == 'shuffle' else self.settings['TTS_Voice']
+            voice_options = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
+            voice_setting = self.settings.get('TTS_Voice', 'alloy')
+            voice = random.choice(voice_options) if voice_setting == 'shuffle' else voice_setting
+
             self.audio = self.client.audio.speech.create(
-                model = self.settings['TTS_Model'],
-                voice = voice,
-                speed = float(self.settings['TTS_Speed']),
-                input = self.paper_metrices['summary'],
+                model=self.settings.get('TTS_Model'),
+                voice=voice,
+                speed=float(self.settings.get('TTS_Speed', 1.0)),
+                input=summary,
             )
-            self.audio.stream_to_file(filename + self.settings['Audio_Format'])
+            self.audio.stream_to_file(filename + self.settings.get('Audio_Format', '.mp3'))
         except Exception as e:
-            print(f"Error creating audio: {e}")
+            logging.error(f"Fehler beim Erstellen des Audios: {e}")
 
-
-    # if newsletter: make ChatGPT create a newletter text based on all text summaries
     def create_newsletter_text(self, all_summaries=None):
         """
-        Creates a newsletter text based on the summaries that are stored in PaperReader.all_summaries. If a list of texts is provided via function arg, the function will use those instead. 
+        Erstellt einen Newsletter-Text basierend auf den in PaperReader.all_summaries gespeicherten Zusammenfassungen.
+        Wenn eine Liste von Texten bereitgestellt wird, werden diese verwendet.
         """
-        
-        # load all summaries
+        # Lade alle Zusammenfassungen
         all_summaries = all_summaries if all_summaries is not None else self.all_summaries
 
-        # let ChatGPT create Newsletter text
-        lang = self.settings['Inference_Language']
+        if not all_summaries:
+            logging.warning("Keine Zusammenfassungen verfügbar, um einen Newsletter zu erstellen.")
+            return ""
+
+        # Lasse das LLM den Newsletter-Text erstellen
+        lang = self.settings.get('Inference_Language', 'English')
         suffix = f" Please answer in {lang}." if lang != "English" else ""
-        
-        instruction = self.settings['Newsletter_Prompt']
+
+        instruction = self.settings.get('Newsletter_Prompt', '')
         prompt = ' \n\nNext text:\n\n'.join(all_summaries) + suffix
-        
+
         try:
-            newsletter_text = self.client.chat.completions.create(
-                model = self.settings['GPT_Newsletter_Model'],
+            response = self.client.chat.completions.create(
+                model=self.settings.get('GPT_Newsletter_Model'),
                 messages=[
                     {"role": "system", "content": instruction},
                     {"role": "user", "content": prompt}
-                ]).choices[0].message.content
-            
+                ]
+            )
+            newsletter_text = response.choices[0].message.content.strip()
+            return newsletter_text
         except Exception as e:
-            print(f"Error creating newsletter: {e}")
+            logging.error(f"Fehler beim Erstellen des Newsletters: {e}")
+            return ""
 
-        return newsletter_text
-
-
-    # method for sending email with attachments
     def send_email(self, include_pdf_portfolio=False):
         """
-        Sends an email with the specified settings and attachments.
+        Sendet eine E-Mail mit den angegebenen Einstellungen und Anhängen.
         """
-        if self.settings['include_notion'].lower() == 'true':
-            self.settings['Email_Body'] = self.settings['Email_Body'] + '\n\nLink to Notion Database:\n' + f"https://www.notion.so/{self.settings['Notion_Database_Id']}"
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = self.settings['Email_From']
-            msg['To'] = self.settings['Email_To']
-            msg['Subject'] = self.settings['Email_Subject']
-            msg.attach(MIMEText(self.settings['Email_Body'], 'plain', 'utf-8'))
+        if self.settings.get('include_notion', 'false').lower() == 'true':
+            self.settings['Email_Body'] += '\n\nLink to Notion Database:\n' + f"https://www.notion.so/{self.settings['Notion_Database_Id']}"
 
-            # Attach files
-            relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f"*{self.settings['Audio_Format']}"))
-            if include_pdf_portfolio:
-                relevant_files.append(*glob.glob(os.path.join(self.settings['Destination_Directory'], '*.pdf')))
-            for file_path in relevant_files:
-                filename = os.path.basename(file_path)
+        msg = MIMEMultipart()
+        msg['From'] = self.settings.get('Email_From')
+        msg['To'] = self.settings.get('Email_To')
+        msg['Subject'] = self.settings.get('Email_Subject')
+        msg.attach(MIMEText(self.settings.get('Email_Body', ''), 'plain', 'utf-8'))
+
+        # Anhänge hinzufügen
+        relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f"*{self.settings.get('Audio_Format', '.mp3')}"))
+        if include_pdf_portfolio:
+            relevant_files.extend(glob.glob(os.path.join(self.settings['Destination_Directory'], '*.pdf')))
+
+        for file_path in relevant_files:
+            filename = os.path.basename(file_path)
+            try:
                 with open(file_path, 'rb') as attachment:
                     part = MIMEBase('application', 'octet-stream')
                     part.set_payload(attachment.read())
                 encoders.encode_base64(part)
                 part.add_header('Content-Disposition', f'attachment; filename= {filename}')
                 msg.attach(part)
+            except Exception as e:
+                logging.error(f"Fehler beim Anhängen der Datei {filename}: {e}")
 
-            # Setup and send the email
-            server = smtplib.SMTP(self.settings['SMTP_Host'], int(self.settings['SMTP_Port']))
-            server.starttls()
-            try:
+        # E-Mail senden
+        try:
+            with smtplib.SMTP(self.settings['SMTP_Host'], int(self.settings['SMTP_Port'])) as server:
+                server.starttls()
                 server.login(self.settings['SMTP_User'], self.settings['SMTP_Password'])
                 server.send_message(msg)
-            finally:
-                server.quit()
+                logging.info("E-Mail erfolgreich gesendet.")
         except Exception as e:
-            print(f"Error sending email: {e}")
-
+            logging.error(f"Fehler beim Senden der E-Mail: {e}")
