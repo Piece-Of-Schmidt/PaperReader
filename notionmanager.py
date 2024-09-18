@@ -1,58 +1,65 @@
 import re
+import logging
 from datetime import date
 import requests
 
 
 class NotionManager:
-
     def __init__(self, settings, OpenAIclient=None, paper_metrices=None):
+        """
+        Initialisiert den NotionManager mit den gegebenen Einstellungen und dem OpenAI-Client.
+        """
         self.settings = settings
         self.client = OpenAIclient
         self.notion_header = self.build_header()
         self.paper_metrices = paper_metrices
 
-
-    # build header for Notion calls 
     def build_header(self):
+        """
+        Baut den Header für Notion-API-Aufrufe basierend auf den Einstellungen.
+        """
         return {
-            "Authorization": "Bearer " + self.settings['Notion_Token'],
+            "Authorization": "Bearer " + self.settings.get('Notion_Token', ''),
             "Content-Type": "application/json",
-            "Notion-Version": self.settings['Notion_Version']
+            "Notion-Version": self.settings.get('Notion_Version', '2021-08-16')
         }
-    
-    # check paper_metrices
-    def validate_paper_metrices(self):
-        required_keys = ['author', 'year', 'title', 'summary']
-        missing_keys = [key for key in required_keys if key not in self.paper_metrices or not self.paper_metrices[key]]
-        
-        for key in missing_keys:
-            self.paper_metrices[key] = 'not provided' 
 
-        # Ensure 'year' is an integer
-        if not isinstance(self.paper_metrices['year'], int):
+    def validate_paper_metrices(self):
+        """
+        Überprüft, ob die erforderlichen Schlüssel in paper_metrices vorhanden sind und gültig sind.
+        """
+        required_keys = ['author', 'year', 'title', 'summary']
+        missing_keys = [key for key in required_keys if not self.paper_metrices.get(key)]
+
+        for key in missing_keys:
+            self.paper_metrices[key] = 'not provided'
+
+        # Sicherstellen, dass 'year' ein Integer ist
+        try:
+            self.paper_metrices['year'] = int(self.paper_metrices['year'])
+        except (ValueError, TypeError):
+            logging.error("Der 'year'-Wert in paper_metrices muss ein Integer sein.")
             raise ValueError("The 'year' in paper_metrices must be an integer.")
 
-        print("paper_metrices validation passed.")
+        logging.info("paper_metrices validation passed.")
 
-
-    # add all cloumns that do not exist
     def check_and_add_missing_properties(self):
         """
-        Checks for missing properties in the Notion database and adds them if they're missing.
+        Überprüft auf fehlende Eigenschaften in der Notion-Datenbank und fügt sie hinzu, falls sie fehlen.
         """
-        database_id = self.settings['Notion_Database_Id']
+        database_id = self.settings.get('Notion_Database_Id', '')
         get_url = f'https://api.notion.com/v1/databases/{database_id}'
-        
-        # Get current database schema
+
+        # Abrufen des aktuellen Datenbankschemas
         response = requests.get(get_url, headers=self.notion_header)
         if response.status_code != 200:
-            print("Fehler beim Abrufen der Datenbankinformationen:", response.text)
+            logging.error(f"Fehler beim Abrufen der Datenbankinformationen: {response.text}")
             return
-        
+
         database_properties = response.json().get('properties', {})
         missing_properties = {}
 
-        # Define the expected properties here
+        # Erwartete Eigenschaften definieren
         expected_properties = {
             "Author": {"title": {}},
             "Year": {"number": {}},
@@ -62,134 +69,152 @@ class NotionManager:
             "Abstract": {"rich_text": {}},
             "Tags": {"rich_text": {}},
             "Notes": {"rich_text": {}},
-            # Add other properties as needed
+            # Weitere Eigenschaften können hier hinzugefügt werden
         }
 
-        # Check for missing properties
+        # Überprüfen auf fehlende Eigenschaften
         for prop_name, prop_data in expected_properties.items():
             if prop_name not in database_properties:
                 missing_properties[prop_name] = prop_data
-        
-        # Add missing properties if any
+
+        # Fehlende Eigenschaften hinzufügen
         if missing_properties:
             update_url = f'https://api.notion.com/v1/databases/{database_id}'
             payload = {"properties": missing_properties}
             response = requests.patch(update_url, headers=self.notion_header, json=payload)
             if response.status_code == 200:
-                print("Fehlende Spalten erfolgreich hinzugefügt.")
+                logging.info("Fehlende Spalten erfolgreich hinzugefügt.")
             else:
-                print("Fehler beim Hinzufügen fehlender Spalten:", response.text)
+                logging.error(f"Fehler beim Hinzufügen fehlender Spalten: {response.text}")
 
-    # edit page in notion database
     def parse_text_content(self, text_content, title=None):
         """
-        transforms summary to correct format
+        Transformiert die Zusammenfassung in das korrekte Format für Notion-Blöcke.
         """
-
         blocks = []
-        
-        # build headline
-        if title:
-            header = {'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [{'type': 'text', 'text': {'content': title}, 'annotations': {'bold': True}}]}}
-            blocks.append(header)
-        
-        # build text content as paragraph blocks
-        text_chunks = re.findall(r".{1,2000}(?=\s|$|\n)", text_content) # because of character limit per text block
-        for chunk in text_chunks:
-            paragraph_block = {'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': chunk.strip()}}]}}
-            blocks.append(paragraph_block)
-        
-        # paste headline block and text block
-        blocks.append({'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': [{'type': 'text', 'text': {'content': "\n"}}]}})
-        
-        return blocks
-    
 
-    # create new entry to notion database
+        # Überschrift hinzufügen
+        if title:
+            header = {
+                'object': 'block',
+                'type': 'heading_3',
+                'heading_3': {
+                    'rich_text': [
+                        {
+                            'type': 'text',
+                            'text': {'content': title},
+                            'annotations': {'bold': True}
+                        }
+                    ]
+                }
+            }
+            blocks.append(header)
+
+        # Textinhalt in Absätze aufteilen (aufgrund von Größenbeschränkungen pro Block)
+        text_chunks = re.findall(r".{1,2000}(?=\s|$|\n)", text_content)
+        for chunk in text_chunks:
+            paragraph_block = {
+                'object': 'block',
+                'type': 'paragraph',
+                'paragraph': {
+                    'rich_text': [
+                        {'type': 'text', 'text': {'content': chunk.strip()}}
+                    ]
+                }
+            }
+            blocks.append(paragraph_block)
+
+        # Leerzeile hinzufügen
+        blocks.append({
+            'object': 'block',
+            'type': 'paragraph',
+            'paragraph': {
+                'rich_text': [
+                    {'type': 'text', 'text': {'content': "\n"}}
+                ]
+            }
+        })
+
+        return blocks
+
     def add_paper_to_database(self, author=None, year=None, title=None, summary=None, project_name=None, abstract=None, tags_list=None):
         """
-        creates a new entry to a given notion database. The database ID is provided by settings.csv.
-        The database is expected to have columns "Author", "Year", "Title", "Added" und "Tags".
-        To work properly, make sure the properties of your Notion Database are correctly defined:
-            Autor: Title (Aa)
-            Year: Number (#)
-            Title: Rich Text (<lines symbol>)
-            Added: Date (<calender symbol>)
-            Project: Rich Text (<lines symbol>)
-            Abstract: Rich Text (<lines symbol>)
-            Tags: Rich Text (<lines symbol>)
-        If the columns are missing or of the wrong property, the code will create the columns automatically.
+        Erstellt einen neuen Eintrag in der angegebenen Notion-Datenbank.
         """
-        
-        # check if paper_metrices is of the right format
+        # Überprüfen, ob paper_metrices das richtige Format hat
         self.validate_paper_metrices()
 
         create_url = 'https://api.notion.com/v1/pages'
 
-        # get paper metrices from self.paper_metrices and from settings
-        author = author if author is not None else self.paper_metrices['author']
-        year = year if year is not None else self.paper_metrices['year']
-        title = title if title is not None else self.paper_metrices['title']
+        # Paper-Metriken aus self.paper_metrices und settings abrufen
+        author = author if author is not None else self.paper_metrices.get('author', 'Unknown')
+        year = year if year is not None else self.paper_metrices.get('year', 0)
+        title = title if title is not None else self.paper_metrices.get('title', 'Untitled')
         added = date.today().isoformat()
-        summary = summary if summary is not None else self.paper_metrices['summary']
-        project_name = project_name if project_name is not None else self.paper_metrices['project_name']
-        abstract = abstract if abstract is not None else self.paper_metrices['abstract']
-        tags_list = tags_list if tags_list is not None else self.settings['Notion_Document_Tags']
-        
+        summary = summary if summary is not None else self.paper_metrices.get('summary', '')
+        project_name = project_name if project_name is not None else self.paper_metrices.get('project_name', '')
+        abstract = abstract if abstract is not None else self.paper_metrices.get('abstract', '')
+        tags_list = tags_list if tags_list is not None else self.settings.get('Notion_Document_Tags', '')
+
         properties = {
             "Author": {"title": [{"text": {"content": author}}]},
             "Year": {"number": year},
             "Title": {"rich_text": [{"text": {"content": title}}]},
             "Added": {"date": {"start": added}},
             "Abstract": {"rich_text": [{"text": {"content": abstract}}]},
-            }
-        
-        # add project name and tags if provided
-        if len(project_name) > 0: properties["Project"] = {"rich_text": [{"text": {"content": project_name}}]}
-        if len(tags_list) > 0:
+        }
+
+        # Projektname und Tags hinzufügen, falls vorhanden
+        if project_name:
+            properties["Project"] = {"rich_text": [{"text": {"content": project_name}}]}
+        if tags_list:
             tags = self.create_tags(summary, tags_list)
             properties["Tags"] = {"rich_text": [{"text": {"content": tags}}]}
 
-        # parse summary (split it into paragraphs that fit into Notion block size)
+        # Zusammenfassung in Notion-Blöcke aufteilen
         children = self.parse_text_content(summary, title=title)
 
-        # push to Notion
-        payload = {"parent": {"database_id": self.settings['Notion_Database_Id']}, "properties": properties, "children": children}
+        # Daten an Notion senden
+        payload = {
+            "parent": {"database_id": self.settings.get('Notion_Database_Id', '')},
+            "properties": properties,
+            "children": children
+        }
         response = requests.post(create_url, headers=self.notion_header, json=payload)
         if response.status_code == 200:
-            print("Neue Seite erfolgreich in Notion erstellt.")
+            logging.info("Neue Seite erfolgreich in Notion erstellt.")
         else:
-            print("Fehler beim Erstellen der neuen Seite in Notion:", response.text)
+            logging.error(f"Fehler beim Erstellen der neuen Seite in Notion: {response.text}")
 
-
-    # create tags
     def create_tags(self, summary=None, tags_list=None):
         """
-        Assigns 1-3 tags to the created article summary based on the tags list provided in settings.csv.
-        If no tags list is provided or if the assignment fails, the script will just save an empty string "" as tags
+        Weist der erstellten Artikelzusammenfassung 1-3 Tags basierend auf der in settings.csv bereitgestellten Tags-Liste zu.
         """
+        # Tags-Liste aus Einstellungen abrufen, falls nicht bereitgestellt
+        tags_list = tags_list if tags_list is not None else self.settings.get('Notion_Document_Tags', '')
 
-        # read tags list from settings if not provided
-        tags_list = tags_list if tags_list is not None else self.settings['Notion_Document_Tags']
+        if tags_list:
+            summary = summary if summary is not None else self.paper_metrices.get('summary', '')
+            instruction = (
+                f"Read the following text and assign 1-3 of the following labels to it. "
+                f"Please only provide labels that truly describe the text. "
+                f"If you find no label matches the text, return 'none'. "
+                f"Return the labels as a comma-separated list.\nTags: {tags_list}"
+            )
 
-        if len(tags_list) > 0:
-
-            summary = summary if summary is not None else self.paper_metrices['summary']
-            instruction = f'''Read the following text and assign 1-3 of the following labels to it. Please only provide labels that truely describe the text. If you find no label matches the text, return "none". Return the labels as a comma-seperated list.
-            Tags: {tags_list}'''
-            
             try:
-                tags = self.client.chat.completions.create(
-                    model = self.settings['GPT_Newsletter_Model'],
+                response = self.client.chat.completions.create(
+                    model=self.settings.get('GPT_Newsletter_Model', ''),
                     messages=[
                         {"role": "system", "content": instruction},
                         {"role": "user", "content": summary}
-                    ]).choices[0].message.content
-                
+                    ]
+                )
+                tags = response.choices[0].message.content.strip()
             except Exception as e:
-                print(f"Error creating tags: {e}.\nNo tags saved.")
+                logging.error(f"Fehler beim Erstellen der Tags: {e}. Keine Tags gespeichert.")
                 tags = ""
-
-            # add tags to paper metrices
             return tags
-    
+        else:
+            logging.warning("Keine Tags-Liste verfügbar.")
+            return ""
