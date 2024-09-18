@@ -7,17 +7,17 @@ include_notion,False
 send_email,True
 remove_pdfs_after_process,False
 API_Key,<place API-key here>
-GPT_Summarizer_Model,gpt-4o
+GPT_Summarizer_Model,gpt-4o-mini
 GPT_Newsletter_Model,gpt-4o-mini
 Inference_Language,German
 Exclude_Pattern,Electronic( )*copy available at: |https:.*( |[.])
-LLM_Instruction,You are a research assistant specializing in summarizing research papers for podcasts and radio reports.
-LLM_Prompt,Please write a detailed summary of the following research paper. Focus on the methodology and the results. Finally relate the results to other research on this topic.
-TTS_Model,tts-1
+LLM_Instruction,You are a research assistant specializing in summarizing research papers..
+LLM_Prompt,Your task is to write a detailed summary of the following research paper. The summary will be processed via Text to Speech later on; so please write it in a way that people will enjoy listening to it. Focus on the methodology and the results of the paper. Finally relate the results to other research on this topic. Please use simple language.
+TTS_Model,tts-1-hd
 TTS_Voice,shuffle
-TTS_Speed,1
+TTS_Speed,1.1
 Audio_Format,.mp3
-Newsletter_Prompt,You are a content creator for scientific newsletters. Please read the following texts and write a short Newsletter based on their content.
+Newsletter_Prompt,"You are a content creator for a scientific newsletter called 'TLDR'. Please read the provided texts and compose a concise, engaging newsletter based on them. The tone should be professional yet accessible, with the goal of summarizing complex scientific topics in simple, easy-to-understand language. Each article preview should be brief, interesting, and no more than a few lines. Begin the newsletter with a simple greeting: 'Good morning.'"
 Notion_Version,2022-06-28
 Notion_Token,<place Notion Secret Token here>
 Notion_Database_Id,<place Notion Database ID here>
