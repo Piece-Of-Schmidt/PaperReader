@@ -88,6 +88,10 @@ if __name__ == '__main__':
             filename = os.path.join(destdir, root_name + ".txt")
             assi.save_summary(filename=filename)
 
+            # Paper-Metriken übergeben, vor allem wg. der DOI
+            if build_portfolio:
+                pdf.metrices_list.append(assi.paper_metrices)
+
         # Audio aus Zusammenfassung erstellen
         if create_summary and create_audio:
             logging.info('Erstelle Audiodatei')
