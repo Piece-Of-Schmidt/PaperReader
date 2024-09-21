@@ -67,6 +67,7 @@ If you provide `Notion_Document_Tags` in `settings.csv`, the script calls ChatGP
 ## Note
 
 - It is recommended to use meaningful file names for the pdf files you wish to get summarised. These file names are used as headlines in the PDF summary portfolio (and in Notion, if activated).
+- This project includes the DejaVu Sans font, which is provided under the DejaVu Fonts License. The font files are included in the repository to ensure the script runs properly, even without the fonts installed on the local machine. For more details, see the DejaVu_Font_License.txt file located in the fonts folder.
 - Ensure you have the necessary permissions to use and share the content of the PDFs you are processing.
 - Handle your API keys and email credentials securely.
 
