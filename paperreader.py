@@ -42,7 +42,7 @@ class PaperReader:
 
             # Extrahiere Paper-Metriken
             filename = os.path.splitext(os.path.basename(path))[0]
-            self.get_paper_metrices(filename)
+            self.get_paper_metrices(paper_title=filename)
 
         except FileNotFoundError as e:
             logging.error(f"PDF-Datei nicht gefunden {path}: {e}")
@@ -54,12 +54,16 @@ class PaperReader:
             logging.exception(f"Unerwarteter Fehler beim Lesen der PDF-Datei {path}: {e}")
             self.paper = None
 
-    def get_paper_metrices(self, paper_title=None, project_name=None, summary=None):
+    def get_paper_metrices(self, paper_title=None, paper=None, project_name=None, summary=None):
         """
         Extrahiert Informationen über Autor, Veröffentlichungsjahr und Titel aus dem Dokumentnamen.
         Wenn diese Informationen nicht im Dokumentnamen enthalten sind, versucht das LLM, diese zu schätzen.
         Fügt den Projektnamen aus settings.csv zu den Metriken hinzu.
+        Extrahiert die DOI des Papers und generiert einen Link, über den das Paper zu finden ist.
         """
+        # Paper einalden
+        paper = paper if paper is not None else self.paper
+        
         # Lese Projektname aus den Einstellungen
         project_name = project_name if project_name is not None else self.settings.get('Notion_Project_Name', '')
 
@@ -74,7 +78,7 @@ class PaperReader:
             metrices['year'] = int(metrices['year'])  # Jahr als Integer
         else:
             instruction = 'Please extract from the following text the information about the author(s), the publishing year and the title. Provide the information in the following format: author (year) title'
-            prompt = self.paper[:1000]
+            prompt = paper[:1000]
 
             try:
                 response = self.client.chat.completions.create(
@@ -96,9 +100,16 @@ class PaperReader:
                 logging.error(f"Fehler beim Extrahieren der Paper-Metriken: {e}")
                 metrices = {'author': 'Unknown', 'year': 0, 'title': 'Unknown'}
 
+        # Regex-Muster zur Extraktion der DOI
+        doi_pattern = r'\b(10\.\d{4,9}/.*)\b'
+        doi_match = re.search(doi_pattern, paper[:10000])
+
         # Füge Projektnamen aus settings.csv hinzu
         metrices['project_name'] = project_name
 
+        # Füge Paper-Link hinzu
+        metrices['doi_link'] = f"https://doi.org/{doi_match.group(1)}" if doi_match else ""
+    
         # Extrahiere Abstract
         metrices['abstract'] = self.extract_abstract()
 
@@ -148,6 +159,12 @@ class PaperReader:
                 ]
             )
             summary = response.choices[0].message.content.strip()
+            
+            # DOI-Link hinzufügen
+            doi_link = self.paper_metrices.get('doi_link')
+            if doi_link:
+                summary += f"\n\nURL to Paper: {doi_link}"
+            
             self.paper_metrices['summary'] = summary
             self.all_summaries.append(summary)
         except Exception as e:
