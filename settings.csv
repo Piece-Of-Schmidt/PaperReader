@@ -25,6 +25,7 @@ Notion_Project_Name,""
 Notion_Document_Tags,""
 File_Directory,Papers
 Destination_Directory,Outputs
+Font_Directory,dejavu_sans
 SMTP_Host,<place host mail here>
 SMTP_Port,<place port here>
 SMTP_User,<place login here>
