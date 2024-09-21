@@ -17,7 +17,6 @@ class PortfolioMaker(FPDF):
         self.summaries = summaries
         self.settings = settings
         self.metrices_list = []
-
         
         # Größere Seitenränder festlegen (in Millimetern)
         self.set_margins(left=30, top=30, right=30)
