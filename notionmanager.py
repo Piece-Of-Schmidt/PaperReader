@@ -69,6 +69,7 @@ class NotionManager:
             "Abstract": {"rich_text": {}},
             "Tags": {"rich_text": {}},
             "Notes": {"rich_text": {}},
+            "URL": {"url": {}},
             # Weitere Eigenschaften können hier hinzugefügt werden
         }
 
@@ -137,7 +138,7 @@ class NotionManager:
 
         return blocks
 
-    def add_paper_to_database(self, author=None, year=None, title=None, summary=None, project_name=None, abstract=None, tags_list=None):
+    def add_paper_to_database(self, author=None, year=None, title=None, summary=None, project_name=None, abstract=None, tags_list=None, doi_link=None):
         """
         Erstellt einen neuen Eintrag in der angegebenen Notion-Datenbank.
         """
@@ -155,6 +156,7 @@ class NotionManager:
         project_name = project_name if project_name is not None else self.paper_metrices.get('project_name', '')
         abstract = abstract if abstract is not None else self.paper_metrices.get('abstract', '')
         tags_list = tags_list if tags_list is not None else self.settings.get('Notion_Document_Tags', '')
+        doi_link = doi_link if doi_link is not None else self.paper_metrices.get('doi_link', '')
 
         properties = {
             "Author": {"title": [{"text": {"content": author}}]},
@@ -162,6 +164,7 @@ class NotionManager:
             "Title": {"rich_text": [{"text": {"content": title}}]},
             "Added": {"date": {"start": added}},
             "Abstract": {"rich_text": [{"text": {"content": abstract}}]},
+            "URL": {"url": doi_link}
         }
 
         # Projektname und Tags hinzufügen, falls vorhanden
