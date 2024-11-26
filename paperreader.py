@@ -68,7 +68,7 @@ class PaperReader:
         project_name = project_name if project_name is not None else self.settings.get('Notion_Project_Name', '')
 
         # Regex-Muster zur Extraktion von Autor, Jahr und Titel
-        pattern = r'^(?P<author>.+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
+        pattern = r'^(?P<author>(?:[\w\s.]+(?:,\s*)?)+?)\s+\((?P<year>\d{4})\)\s+(?P<title>.+)$'
         match = re.match(pattern, paper_title)
 
         metrices = {}
@@ -250,7 +250,10 @@ class PaperReader:
 
         msg = MIMEMultipart()
         msg['From'] = self.settings.get('Email_From')
-        msg['To'] = self.settings.get('Email_To')
+        
+        recipients = [email.strip() for email in self.settings.get('Email_To', '').split(',')]
+        msg['To'] = ', '.join(recipients)
+
         msg['Subject'] = self.settings.get('Email_Subject')
         msg.attach(MIMEText(self.settings.get('Email_Body', ''), 'plain', 'utf-8'))
 
@@ -277,6 +280,6 @@ class PaperReader:
                 server.starttls()
                 server.login(self.settings['SMTP_User'], self.settings['SMTP_Password'])
                 server.send_message(msg)
-                logging.info("E-Mail erfolgreich gesendet.")
+                logging.info(f"E-Mail erfolgreich an {len(recipients)} Empfänger gesendet.")
         except Exception as e:
             logging.error(f"Fehler beim Senden der E-Mail: {e}")
