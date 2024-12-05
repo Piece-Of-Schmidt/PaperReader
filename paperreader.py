@@ -4,12 +4,13 @@ import re
 import random
 import smtplib
 import logging
+import pymupdf
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from PyPDF2 import PdfReader
-from PyPDF2.errors import PdfReadError
+# from PyPDF2 import PdfReader
+# from PyPDF2.errors import PdfReadError
 
 # Konfiguration des Logging-Moduls
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
@@ -25,20 +26,28 @@ class PaperReader:
         self.audio = None
         self.paper_metrices = None
 
-    def read_pdf(self, path, remove_references=True):
+    def read_pdf(self, path=None, remove_references=True):
         """
         Liest und verarbeitet eine PDF-Datei vom angegebenen Pfad.
         """
+        if path is None:
+            logging.info(f' process file: {self.files_to_read[0]}')
+            path = self.files_to_read[0]
+        
         try:
-            reader = PdfReader(path)
-            pages = [reader.pages[idx].extract_text() for idx in range(len(reader.pages))]
-            pages = ''.join(pages)
-            pages = re.sub(self.settings["Exclude_Pattern"], '', pages)
+            pages = []
+            doc = pymupdf.open(path) # open document
+            [pages.append(page.get_text()) for page in doc]
+            whole_doc = ''.join(pages)
+
+            # clean document
+            whole_doc = re.sub('-\n', '', whole_doc)
+            whole_doc = re.sub('\n', ' ', whole_doc)
 
             if remove_references:
-                pages = re.sub(r'(\n)?References(\n)?.*', '', pages, flags=re.DOTALL)
+                whole_doc = re.sub(r'(\n)?References(\n)?.*', '', whole_doc, flags=re.DOTALL)
 
-            self.paper = pages
+            self.paper = whole_doc
 
             # Extrahiere Paper-Metriken
             filename = os.path.splitext(os.path.basename(path))[0]
@@ -46,9 +55,6 @@ class PaperReader:
 
         except FileNotFoundError as e:
             logging.error(f"PDF-Datei nicht gefunden {path}: {e}")
-            self.paper = None
-        except PdfReadError as e:
-            logging.error(f"Fehler beim Lesen der PDF-Datei {path}: {e}")
             self.paper = None
         except Exception as e:
             logging.exception(f"Unerwarteter Fehler beim Lesen der PDF-Datei {path}: {e}")
@@ -129,7 +135,7 @@ class PaperReader:
 
         if match:
             abstract = match.group(1).strip()[:1995] + '...'
-            abstract = re.sub(r'(\nkey( )?words|\nintroduction)(.*)', '', abstract, flags=re.S | re.I)
+            abstract = re.sub(r'(key( )?words|introduction)(.*)', '', abstract, flags=re.S | re.I)
             abstract = re.sub(r'^abstract', '', abstract, flags=re.I).strip()
         else:
             abstract = 'No abstract found.'
