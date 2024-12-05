@@ -1,4 +1,4 @@
-PyPDF2
+pymupdf
 fpdf2
 openai
 requests
