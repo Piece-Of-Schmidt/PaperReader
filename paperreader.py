@@ -43,6 +43,7 @@ class PaperReader:
             # clean document
             whole_doc = re.sub('-\n', '', whole_doc)
             whole_doc = re.sub('\n', ' ', whole_doc)
+            whole_doc = re.sub(' +', ' ', whole_doc)
 
             if remove_references:
                 whole_doc = re.sub(r'(\n)?References(\n)?.*', '', whole_doc, flags=re.DOTALL)
