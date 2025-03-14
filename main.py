@@ -45,13 +45,13 @@ for file_path in files_to_read:
     if create_summary:
         logging.info('Create summary')
         filename = os.path.join(destdir, root_name)
-        obj.create_summary(filename=filename+'_basic')
+        obj.create_summary(filename=filename+'_summary')
         logging.info(f'Succesfully created | {PaperSummarizer.generation_costs = }')
 
     # create audio from summary
     if create_summary and create_audio:
         logging.info('Create audio from summary')
-        obj.create_audio_from_summary(filename=filename+'_audio')
+        obj.create_audio_from_summary() # obj.create_summary(filename=filename+'_audio') # text export currently not supported by OpenAI
         logging.info(f'Succesfully created | {PaperSummarizer.generation_costs = }')
 
     # add summary to Notion Database if activated
