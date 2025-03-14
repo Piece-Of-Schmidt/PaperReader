@@ -1,14 +1,14 @@
 # Research Paper to Audio Summarizer
 
 ## Overview
-This project is a Python-based tool designed to automatically convert PDF documents into summarized audio files. It reads PDF files, generates summaries using OpenAI's GPT-4 model, converts these summaries into audio format, and then sends them via email. It's particularly useful for processing research papers or documents where quick audio summaries are beneficial.<br><br>For demonstration purposes, there is already one paper located in the *Papers* folder and the created summary in *Outputs*.
+This project is a Python-based tool designed to automatically convert PDF formatted research articles into summarized audio files. It reads PDF files, generates summaries using OpenAI's GPT-4o-mini model (default), converts these summaries into a nice audio, saves summary and abstract of the document in a Notion database (if desired) and then sends audio and text via email. It's particularly useful for processing research papers or documents where quick audio summaries are beneficial.<br><br>For demonstration purposes, there is already one paper located in the *Papers* folder and the created summary in *Outputs*.
 
 ## Features
 - **PDF Reading**: Extracts text from PDF files.
 - **Text Summarization**: Uses OpenAI's GPT-4o-mini model (default) to generate concise summaries.
-- **Text-to-Speech**: Converts summaries into audio files using 4o-mini-audio-preview.
+- **Text-to-Speech**: Converts summaries into audio files using 4o-mini-audio-preview (default).
 - **Email Integration**: Sends the generated audio files via email.
-- **Notion Integration**: Uploads all summaries to a pre defined Notion Database. 
+- **Notion Integration**: Uploads all summaries to a pre defined Notion Database (optional).
 
 ## Installation
 
@@ -21,10 +21,11 @@ pip install -r requirements.txt
 ## Usage
 
 1. **Download/Clone Respository**
-2. **Set Keys**: Replace `api_key` and all other placeholders in `settings.json` with your own keys (i.e. OpenAI API, Notion Key, email settings etc.). The latter ones are only required when the respective values in settings (include_notion, send_email) are set to true. You can chose between using openAI models or models hosted by groq. In the letter case, the Neets model is used for text to speech.
-3. **"Upload" Papers**: Place the papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
-4. **Notion Integration**: If you want to make use of the Notion integration, prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
-5. **Start process**: Run the `main.py` script or execute `read_paper.bat` to start the process.
+2. **Set Keys**: Replace `api_key` and all other placeholders in `settings.json` with your own keys (i.e. OpenAI API, Notion Key, email settings etc.). The latter ones are only required when the respective values in settings (include_notion, send_email) are set to true. You can chose between using openAI models or models hosted by groq. In the letter case, [Neets](https://neets.ai/) is used for text to speech. <br>Mandatory keys:
+   - openAI or groq key:
+4. **"Upload" Papers**: Place the papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
+5. **Notion Integration**: If you want to make use of the Notion integration, prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
+6. **Start process**: Run the `main.py` script or execute `read_paper.bat` to start the process.
 
 
 ## How it Works
