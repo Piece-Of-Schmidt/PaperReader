@@ -37,9 +37,7 @@ pip install -r requirements.txt
 - Many settings (such as the output language, the OpenAI model, your API Keys, the audio voice, Notion connection etc.) can be modified in `settings.json`.
 
 ## Notion integration
-The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target Database. The script automatically creates the columns *Title* (treated as DocID), *Author*, *Year*, *Added*, *Essence* (a one-line summary of the provided document), *Status* (To Do, In Progress, Done), and *URL* (online link to paper based on DOI) and adds the respective values.
-
-<br>Learn how to get both keys [here](https://developers.notion.com/docs/create-a-notion-integration).
+The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target Database. **Learn how to get both keys [here](https://developers.notion.com/docs/create-a-notion-integration)**. The script automatically creates the columns *Title* (treated as DocID), *Author*, *Year*, *Added*, *Essence* (a one-line summary of the provided document), *Status* (To Do, In Progress, Done), and *URL* (online link to paper based on DOI) and adds the respective values.
 
 ## Requirements
 
