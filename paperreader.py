@@ -584,29 +584,31 @@ Please consider these elements:
                 summary = self.summary
             
             # call model and save audio locally (except groq model is used - in this case save audio in a separate step)
-            response = self.call_model(instruction=instruction, prompt=summary, model_name=model_name, voice=voice, filename=filename, file_format=file_format)
+            self.call_model(instruction=instruction, prompt=summary, model_name=model_name, voice=voice, filename=filename, file_format=file_format)
 
+            # ------ currently disabled since Neets API is not available anymore ------
             # when groq is used - build audio file with Neets API
-            if not 'gpt' in model_name:
-                response = requests.request(
-                    method="POST",
-                    url="https://api.neets.ai/v1/tts",
-                    headers={
-                        "Content-Type": "application/json",
-                        "X-API-Key": self.settings.get('Neets_API_Key')
-                    },
-                    json={
-                        "text": summary,
-                        "voice_id": self.settings.get('Neets_voice'),
-                        "params": {
-                        "model": "vits"
-                        }
-                    }
-                )
-                
-                # save file
-                with open(f"{filename}.{file_format}", "wb") as f:
-                    f.write(response.content)
+            # if not 'gpt' in model_name:
+            #     audio_file = requests.request(
+            #         method="POST",
+            #         url="https://api.neets.ai/v1/tts",
+            #         headers={
+            #             "Content-Type": "application/json",
+            #             "X-API-Key": self.settings.get('Neets_API_Key')
+            #         },
+            #         json={
+            #             "text": summary,
+            #             "voice_id": self.settings.get('Neets_voice'),
+            #             "params": {
+            #             "model": "vits"
+            #             }
+            #         }
+            #     )
+            #
+            #     # save file
+            #     with open(f"{filename}.{file_format}", "wb") as f:
+            #         f.write(audio_file.content)
+            # ------ currently disabled since Neets API is not available anymore ------
         
         except Exception as e:
             logging.error(f"Error creating audio file: {e}")
