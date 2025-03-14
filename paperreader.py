@@ -100,9 +100,13 @@ class PaperSummarizer:
         :param file_format: Format of the audio file.
         :return: Response text from the model.
         """
-        model_name = model_name if model_name else self.settings.get("Summarizer_Model")
+        model_name = model_name if model_name else self.settings.get('Summarizer_Model', 'gpt-4o-mini')
         audio = {"voice": voice, "format": file_format} if 'audio-preview' in model_name else None
         out_modality = ['audio', 'text'] if 'audio-preview' in model_name else ['text']
+        lang = self.settings.get('Audio_Output_Language', 'English') if 'audio-preview' in model_name or 'tts' in model_name else self.settings.get('Text_Output_Language', 'English')
+        n_tokens = self.num_tokens_from_string(prompt+instruction, 'o200k_base')
+
+        logging.info(f'Settings: Model: {model_name} | Language: {lang} | Voice: {voice} | Format: {file_format} | Input length: {n_tokens} tokens')
 
         try:
             if 'tts' in model_name:
@@ -137,7 +141,7 @@ class PaperSummarizer:
                 response = self.client.chat.completions.create(**kwargs)
 
                 # get response text
-                response_text = response.choices[0].message.content.strip()
+                response_text = response.choices[0].message.content.strip() if 'audio-preview' not in model_name else '<audio-preview model does not currently support audio + text output>'
 
                 # save response text locally
                 if filename:
@@ -157,8 +161,8 @@ class PaperSummarizer:
                 PaperSummarizer.generation_costs['output_tokens'] += round((response.usage.completion_tokens / 1000000) * output_factor, 4)
 
         except Exception as e:
-            response_text = ""
-            logging.error(f"Error calling model: {e}")
+            response_text = ''
+            logging.error(f'Error calling model: {e}')
 
         return response_text
     
@@ -570,8 +574,6 @@ Please consider these elements:
 - don't exagerate or hype up the content, be professional, authentic and engaging
 - keep all relevant information from the document
 - pleae talk in {lang}'''
-
-        logging.info(f'Audio settings: Model: {model_name} | Language: {lang} | Voice: {voice} | Format: {file_format}')
 
         try:
             # reformulate summary for better listeing experience
