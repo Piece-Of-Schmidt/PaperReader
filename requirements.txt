@@ -1,4 +1,4 @@
-pymupdf
-fpdf2
 openai
+PyMuPDF
+tiktoken
 requests
