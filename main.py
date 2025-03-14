@@ -3,12 +3,14 @@ import os
 import logging
 import unicodedata
 from openai import OpenAI
+# from groq import Groq
 from paperreader import PaperSummarizer, NotionManager, RichPaper, MailHandler, read_settings
 
 # read setting
 settings = read_settings()
 
 # init llm client
+# client = Groq(api_key=settings.get('Groq_API_Key'))
 client = OpenAI(api_key=settings.get('OpenAI_API_Key'))
 
 # init paper summarizer
