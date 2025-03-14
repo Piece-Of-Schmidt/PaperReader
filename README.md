@@ -8,7 +8,7 @@ This project is a Python-based tool designed to automatically convert PDF format
 - **Text Summarization**: Uses OpenAI's GPT-4o-mini model (default) to generate concise summaries.
 - **Text-to-Speech**: Converts summaries into audio files using 4o-mini-audio-preview (default).
 - **Email Integration**: Sends the generated audio files via email.
-- **Notion Integration**: Uploads all summaries to a pre defined Notion Database (optional).
+- **Notion Integration**: Uploads all summaries to a pre defined Notion Database (optional, has to be set to true in `settings.json`).
 
 ## Installation
 
@@ -24,8 +24,8 @@ pip install -r requirements.txt
 2. **Set Keys**: Replace `api_key` and all other placeholders in `settings.json` with your own keys (i.e. OpenAI API, Notion Key, email settings etc.). The latter ones are only required when the respective values in settings (include_notion, send_email) are set to true. You can chose between using openAI models or models hosted by groq. In the letter case, [Neets](https://neets.ai/) is used for text to speech. <br>Mandatory keys:
    - openAI or groq key:
 4. **"Upload" Papers**: Place the papers that you wish to get summarized in the *Papers* folder. This is the default folder the script reads from. You can change the directory to any other folder in the `settings.csv`.
-5. **Notion Integration**: If you want to make use of the Notion integration, prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
-6. **Start process**: Run the `main.py` script or execute `read_paper.bat` to start the process.
+5. **Notion Integration**: If you want to make use of the Notion integration, enable it in `settings.json` (see 1.) and prepare your Notion Database that your summarized papers shall be stored in (see below for more information).
+7. **Start process**: Run the `main.py` script or execute `read_paper.bat` to start the process.
 
 
 ## How it Works
@@ -41,9 +41,7 @@ pip install -r requirements.txt
 The app allows an upload of all summaries to a Notion Database. To use this integration, you need to provide your Notion Secret key along with the ID of the target Database. 
 
 ### get those keys
-Learn how to get both keys here:
-
-https://developers.notion.com/docs/create-a-notion-integration
+Learn how to get both keys [here](https://developers.notion.com/docs/create-a-notion-integration).
 
 ## Requirements
 
@@ -55,6 +53,7 @@ https://developers.notion.com/docs/create-a-notion-integration
 
 ## Note
 
-- It is recommended to use meaningful file names for the pdf files you wish to get summarised. These file names are used as headlines in the PDF summary portfolio (and in Notion, if activated).
+- It is recommended to use meaningful file names for the pdf files you wish to get summarised, like "author (year) title" or "author et al. (year) title".
+- In theory, you can also use models different from the OpenAI model. The easiest way is probably to use a groq API key and select a free of charge model (like mixtral 8x22b). For the lack of a good open source TTS model, however, this integration is currently disabled. Check out the code to see where and how the necessary information (keys) can be integrated manually.
 - Ensure you have the necessary permissions to use and share the content of the PDFs you are processing.
 - Handle your API keys and email credentials securely.
