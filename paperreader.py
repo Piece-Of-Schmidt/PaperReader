@@ -8,7 +8,7 @@ import tiktoken
 import requests
 import json
 import smtplib
-import pymupdf
+import fitz
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -105,31 +105,56 @@ class PaperSummarizer:
         out_modality = ['audio', 'text'] if 'audio-preview' in model_name else ['text']
 
         try:
-            response = self.client.chat.completions.create(
-                model=model_name,
-                modalities = out_modality,
-                audio = audio,
-                messages=[
-                    {"role": "system", "content": instruction},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            # save audio file locally 
-            if 'audio-preview' in model_name:
-                audio_file = base64.b64decode(response.choices[0].message.audio.data)
+            if 'tts' in model_name:
+                # shorten summary if too long for TTS
+                if len(prompt) > 4096:
+                    logging.warning("Provided summary is too long for TTS' context window. Text will be truncated.")
 
-                with open(filename + '.' + file_format, 'wb') as f:
+                # create audio
+                audio_file = self.client.audio.speech.create(
+                    model=model_name,
+                    voice=voice,
+                    speed=float(self.settings.get('TTS_Speed', 1.0)),
+                    input=prompt[:4096],
+                )
+                response_text = prompt[:4096]
+
+                # save locally
+                if filename and file_format:
+                    audio_file.stream_to_file(f'{filename}.{file_format}')
+
+            else:
+                # set up kwargs for model call (make sure both openAI and groq Clients are supported)
+                kwargs = {
+                    "model": model_name,
+                    "messages": [
+                        {"role": "system", "content": instruction},
+                        {"role": "user", "content": prompt}
+                    ],
+                    **({"modalities": out_modality, "audio": audio} if 'gpt' in model_name else {})
+                }
+                # call text model
+                response = self.client.chat.completions.create(**kwargs)
+
+                # get response text
+                response_text = response.choices[0].message.content.strip()
+
+                # save response text locally
+                if filename:
+                    with open(f'{filename}.txt', 'w', encoding='utf-8') as file:
+                        file.write(response_text)
+            
+            # if audio was created with openai model (except with tts, see above): save audio file locally
+            if 'audio-preview' in model_name and filename and file_format:
+                audio_file = base64.b64decode(response.choices[0].message.audio.data)
+                with open(f'{filename}.{file_format}', 'wb') as f:
                     f.write(audio_file)
 
             # calculate and add costs
-            if self.settings.get("Summarizer_Model") in ['gpt-4o', 'gpt-4o-mini']:
+            if 'gpt' in model_name:
                 input_factor, output_factor = self.get_price_factors(model_name, 'text', out_modality[0])
                 PaperSummarizer.generation_costs['input_tokens'] += round((response.usage.prompt_tokens / 1000000) * input_factor, 4)
                 PaperSummarizer.generation_costs['output_tokens'] += round((response.usage.completion_tokens / 1000000) * output_factor, 4)
-
-            # get content
-            response_text = response.choices[0].message.content.strip()
 
         except Exception as e:
             response_text = ""
@@ -416,7 +441,7 @@ class RichPaper(PaperSummarizer):
         
         try:
             pages = []
-            doc = pymupdf.open(self.path) # open document
+            doc = fitz.open(self.path) # open document
             [pages.append(page.get_text()) for page in doc]
             whole_doc = ''.join(pages)
 
@@ -494,44 +519,33 @@ class RichPaper(PaperSummarizer):
         return abstract
 
 
-    def create_summary(self, instruction=None, prompt=None):
+    def create_summary(self, instruction=None, prompt=None, model_name=None, filename=None):
         """
         Creates a summary of the paper using the LLM.
         :param instruction: The instruction for the LLM.
         :param prompt: The prompt for the LLM.
+        :param model_name: The name of the model to use ('gpt-4o-mini' as default).
+        :param filename: The name of the file to save the summary to (file format is added automaticall (.txt)).
         """
+        model_name = model_name if model_name is not None else self.settings.get('Summarizer_Model', 'gpt-4o-mini')
 
         if not self.paper:
             logging.warning("No PDF provided.")
             return
 
+        # set language for text output
         lang = self.settings.get('Text_Output_Language', 'English')
         suffix = f" Please answer in {lang}." if lang != "English" else ""
 
         # call llm to summarize paper
         instruction = 'You are a research assistant specializing in summarizing research papers.' if instruction is None else instruction
         prompt = prompt if prompt is not None else 'Your task is to write a detailed summary of the following research paper. Focus on the methodology and the results of the paper. Finally relate the results to other research on this topic.'
-        prompt = prompt + suffix + '\n\n' + self.paper
-        output = self.call_model(instruction, prompt)
+        prompt  = f'{prompt}{suffix}\n\n{self.paper}'
+        output = self.call_model(instruction, prompt, model_name=model_name, filename=filename)
         
         # store summary in object
         self.summary = output
         PaperSummarizer.created_summaries.append(output)
-
-
-    def save_summary(self, filename):
-        """
-        Saves the summary to a text file.
-        :param filename: The name of the file to save the summary to.
-        """
-        if self.summary:
-            try:
-                with open(filename, 'w', encoding='utf-8') as file:
-                    file.write(self.summary)
-            except Exception as e:
-                logging.error(f"Error saving summary: {e}")
-        else:
-            logging.warning("No summary available to save.")
 
 
     def create_audio_from_summary(self, filename=None, model_name=None, ensure_audio_quality=True):
@@ -547,8 +561,6 @@ class RichPaper(PaperSummarizer):
         voice_options = ['alloy', 'ash', 'coral', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
         voice_setting = self.settings.get('TTS_Voice', 'alloy')
         voice = random.choice(voice_options) if voice_setting == 'shuffle' else voice_setting
-        if 'groq' in str(self.client.base_url):
-            model_name = 'groq'
 
         # define instruction for audio generation / reformulation
         instruction = f'''You are an experienced researcher with years of expertise in transforming complex content into audio content for an interested audience. Your task is to convert the following document into a compelling, naturally-flowing text.\n
@@ -562,38 +574,18 @@ Please consider these elements:
         logging.info(f'Audio settings: Model: {model_name} | Language: {lang} | Voice: {voice} | Format: {file_format}')
 
         try:
-
             # reformulate summary for better listeing experience
-            if 'gpt-4o' not in model_name and ensure_audio_quality:                
+            if 'audio-preview' not in model_name and ensure_audio_quality:                
                 logging.info("Reformulating summary for better listening experience.")
-                summary = self.call_model(instruction, self.summary)
+                summary = self.call_model(instruction, self.summary, model_name=model_name, filename=filename)
             else:
                 summary = self.summary
             
-            if 'tts' in model_name:
-                # shorten summary if too long for TTS
-                if len(summary) > 4096:
-                    logging.warning("Provided summary is too long for TTS' context window. Text will be truncated automatically.")
-                    summary = self.call_model('Rewrite the following text to make it a little bit more concise. The text has to fit within a 4096 character limit.',
-                                              summary)[:4096]
+            # call model and save audio locally (except groq model is used - in this case save audio in a separate step)
+            response = self.call_model(instruction=instruction, prompt=summary, model_name=model_name, voice=voice, filename=filename, file_format=file_format)
 
-                # create audio
-                audio_file = self.client.audio.speech.create(
-                    model='tts-1-hd',
-                    voice=voice,
-                    speed=float(self.settings.get('TTS_Speed', 1.0)),
-                    input=summary,
-                )
-                # add costs - hier nochmal ran
-
-                # save file
-                audio_file.stream_to_file(filename + '.' + file_format)
-
-            elif 'gpt-4o' in model_name:
-                self.call_model(instruction=instruction, prompt=summary, model_name=model_name, voice=voice, filename=filename, file_format=file_format)
-
-            # when groq is used
-            elif model_name == 'groq':
+            # when groq is used - build audio file with Neets API
+            if not 'gpt' in model_name:
                 response = requests.request(
                     method="POST",
                     url="https://api.neets.ai/v1/tts",
@@ -611,11 +603,8 @@ Please consider these elements:
                 )
                 
                 # save file
-                with open(filename + "." + file_format, "wb") as f:
+                with open(f"{filename}.{file_format}", "wb") as f:
                     f.write(response.content)
-
-            else:
-                logging.error("Invalid model name provided. Please use 'tts', 'tts-1-hd', 'gpt-4o-audio-preview 'gpt-4o-mini-audio-preview' or 'groq'.")
         
         except Exception as e:
             logging.error(f"Error creating audio file: {e}")
