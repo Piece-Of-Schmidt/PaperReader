@@ -1,0 +1,29 @@
+In der Arbeit von Müller et al. (2022) wird ein neues Instrument zur Messung der Medienberichterstattung über Inflation vorgestellt, bekannt als der Inflation Perception Indicator (IPI). Dieser basiert auf einem umfangreichen Korpus von über drei Millionen Artikeln aus führenden deutschen Tageszeitungen, die im Zeitraum von Januar 2001 bis Februar 2022 veröffentlicht wurden. Die Methode nutzt das RollingLDA-Verfahren, das eine dynamische Topic-Modellierung erlaubt und somit in der Lage ist, Veränderungen in der Themenstruktur über die Zeit abzubilden.
+
+### Methodologie
+
+Die Autoren ihrer Untersuchung konzentrieren sich auf die Entwicklung des inflationären Narrativs und dessen Thematisierung in den Medien. Dabei werden folgende Schlüsselmomente und Schritte beachtet:
+
+1. **Datenbasis**: Der IPI wird auf einem Korpus von Artikeln basierend auf drei großen deutschen Zeitungen (Süddeutsche Zeitung, Die Welt, und Handelsblatt) erstellt. Nach einer gründlichen Datenbereinigung und der Entwicklung eines themenspezifischen Analyse-Korpus von 50.495 Artikeln wird die RollingLDA-Methode angewandt.
+
+2. **RollingLDA**: Diese Technik verbessert das klassische LDA (Latent Dirichlet Allocation), indem sie die Fähigkeit zur Erfassung dynamischer Themenentwicklungen bietet. Dadurch können Korrelationen zwischen neuen Daten und bestehenden Themenmodellen besser dargestellt werden. Ein Prototyp eines LDA wird zur Stabilisierung der Ergebnisse ausgewählt, und das Modell wird anschließend fortlaufend aktualisiert.
+
+3. **Narrative Identifizierung**: Die Autoren analysieren die charakteristischen Artikel für jedes der identifizierten Themen und bewerten diese hinsichtlich ihrer narrativen Struktur. Es werden verschiedene Elemente berücksichtigt, darunter Problemdefinition, moralische Urteile und Protagonisten. Ziel ist es, die wichtigsten Akteure und Ereignisse, die die öffentliche Wahrnehmung von Inflation prägen, systematisch zu erfassen.
+
+### Ergebnisse
+
+Die Analyse zeigt eine dramatische Verschiebung in der Wahrnehmung von Inflation über den Zeitrahmen:
+
+- **Medienberichterstattung**: Die Berichterstattung über Inflation zeigt, dass diese häufig durch tatsächliche Preisveränderungen in der Wirtschaft ausgelöst wird. Es gab signifikante Wellen in der Berichterstattung, die mit Ereignissen wie der Finanzkrise von 2008, der Eurozonen-Schuldenkrise und der Pandemie in Verbindung stehen.
+
+- **Einflussfaktoren**: Den Ursachen von Inflation wird ein heterogenes Bild zugeschrieben. Während in den Anfangsjahren der Analyse die Rolle zentraler Banken und der Geldpolitik dominiert, nehmen die Berichterstattung über Rohstoffpreise und die Auswirkungen der COVID-19-Pandemie an Bedeutung zu. Adressierte Akteure umfassen sowohl verantwortliche Institutionen als auch diejenigen, die unter Inflation leiden, wie Verbraucher und Arbeitnehmer.
+
+- **Narrativ-Entwicklung**: Die Untersuchung identifiziert eine kollektive Erzählung, die Inflation als ein Problem wahrnimmt, das vor allem für Sparer und Konsumenten nachteilig ist. Die moralische Bewertung zeigt Inflation als negativ, besonders in Zeiten niedriger Zinsen, wo die Expropriation von Sparern eine zentrale Sorge darstellt.
+
+### Relationen zu anderer Forschung
+
+Die Ergebnisse der Studie stehen im Einklang mit bisherigen Erkenntnissen in der Medien- und Wirtschaftspsychologie, die den Einfluss der Medien auf die öffentliche Wahrnehmung wirtschaftlicher Themen hervorheben. Studien von Lamla und Lein (2014) zeigen beispielsweise, dass intensive Medienberichterstattung die Genauigkeit der Inflationsprognosen der Verbraucher verbessert. Auch die Arbeiten von Shiller (2017) und anderen zur narrativen Ökonomie belegen die Bedeutung von Erzählungen zur Erklärung wirtschaftlicher Verhaltenstendenzen.
+
+Müller et al. erweitern diese Diskussion um die Idee, dass Narrative in den Medien nicht nur die Wahrnehmung, sondern auch ökonomische Entscheidungen formen können. Die Schaffung eines spezifischen Indikators wie dem IPI könnte dazu beitragen, die Rolle der Medien bei der Formung von Inflationserwartungen noch weiter zu erforschen und die Curricula für zukünftige wirtschaftliche Prognosen zu verbessern. 
+
+Insgesamt zeigt die Studie, dass Narrative über Inflation in der deutschen Öffentlichkeit nicht nur ein Abbild der wirtschaftlichen Realität sind, sondern auch als Werkzeug dienen können, um diese Realität zu interpretieren und zu steuern.
