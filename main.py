@@ -14,16 +14,20 @@ client = OpenAI(api_key=settings.get('OpenAI_API_Key'))
 # init paper summarizer
 PaperSummarizer.initialize(settings, client)
 
-# read all files in directory
-files_to_read = glob.glob(os.path.join(settings["File_Directory"], '*.pdf'))
-
 # read variables
+def str_to_bool(value):
+    return str(value).lower() in ['true', '1', 'yes']
+
+filedir = settings.get("File_Directory", "./Papers")
 destdir = settings.get("Destination_Directory", "./output")
-create_summary = settings.get("create_summary", "false")
-create_audio = settings.get("create_audio", "false")
-include_notion = settings.get("include_notion", "false")
-sendmail = settings.get("send_email", "false")
-unlink = settings.get("remove_pdfs_after_process", "false")
+create_summary = str_to_bool(settings.get("create_summary", "false"))
+create_audio = str_to_bool(settings.get("create_audio", "false"))
+include_notion = str_to_bool(settings.get("include_notion", "false"))
+sendmail = str_to_bool(settings.get("send_email", "false"))
+unlink = str_to_bool(settings.get("remove_pdfs_after_process", "false"))
+
+# read all files in directory
+files_to_read = glob.glob(os.path.join(filedir, '*.pdf'))
 
 # loop over all files
 for file_path in files_to_read:
@@ -40,19 +44,14 @@ for file_path in files_to_read:
     # create summary
     if create_summary:
         logging.info('Create summary')
-        obj.create_summary()
+        filename = os.path.join(destdir, root_name)
+        obj.create_summary(filename=filename+'_basic')
         logging.info(f'Succesfully created | {PaperSummarizer.generation_costs = }')
-
-        # save summary on disk
-        logging.info('Save summary on disk')
-        filename = os.path.join(destdir, root_name + ".txt")
-        obj.save_summary(filename=filename)
 
     # create audio from summary
     if create_summary and create_audio:
         logging.info('Create audio from summary')
-        filename = os.path.join(destdir, root_name)
-        obj.create_audio_from_summary(filename=filename)
+        obj.create_audio_from_summary(filename=filename+'_audio')
         logging.info(f'Succesfully created | {PaperSummarizer.generation_costs = }')
 
     # add summary to Notion Database if activated
