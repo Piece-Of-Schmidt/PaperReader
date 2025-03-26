@@ -167,9 +167,15 @@ class PaperSummarizer:
         return response_text
     
     @classmethod
-    def initialize(cls, settings, client):
-        cls.settings = settings
-        cls.client = client
+    def initialize(cls, settings_dict, llm_client):
+        """Initializes the class variables with settings and the LLM client."""
+        cls.settings = settings_dict
+        cls.client = llm_client
+        # Reset costs/summaries for a new run if needed,
+        # or manage this state in the Streamlit app
+        cls.generation_costs = {'input_tokens': 0, 'output_tokens': 0}
+        cls.created_summaries = []
+        logging.info("PaperSummarizer initialized.")
 
 
 class NotionManager(PaperSummarizer):
