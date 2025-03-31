@@ -619,7 +619,7 @@ class MailHandler(PaperSummarizer):
         self.paper_metrices = None
         self.include_notion = self.settings.get('Include_Notion', False)
 
-    def send_email(self):
+    def send_email(self, files_to_send = None):
         """
         Sends an email with the generated summaries and the paper as attachment.
         """
@@ -638,21 +638,21 @@ class MailHandler(PaperSummarizer):
         msg.attach(MIMEText(self.settings.get('Email_Body', ''), 'plain', 'utf-8'))
 
         # get all relevant files in the destination directory
-        relevant_files = glob.glob(os.path.join(self.settings['Destination_Directory'], f"*{self.settings.get('Audio_Format', 'mp3')}"))
+        files_to_send = files_to_send if files_to_send is not None else glob.glob(os.path.join(self.settings['Destination_Directory'], f"*{self.settings.get('Audio_Format', 'mp3')}"))
 
         # add audio files as attachments
-        for file_path in relevant_files:
-            filename = os.path.basename(file_path)
+        for file_path in files_to_send:
+            basename = os.path.basename(file_path)
             
             try:
                 with open(file_path, 'rb') as attachment:
                     part = MIMEBase('application', 'octet-stream')
                     part.set_payload(attachment.read())
                 encoders.encode_base64(part)
-                part.add_header('Content-Disposition', f'attachment; filename= {filename}')
+                part.add_header('Content-Disposition', f'attachment; filename= {basename}')
                 msg.attach(part)
             except Exception as e:
-                logging.error(f"Error adding attachment {filename}: {e}")
+                logging.error(f"Error adding attachment {basename}: {e}")
 
         # send mail
         try:
