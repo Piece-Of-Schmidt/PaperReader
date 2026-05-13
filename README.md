@@ -1,5 +1,7 @@
 # Research Paper to Audio Summarizer
 
+## 👉 [Try the live demo](https://paperreader.netlify.app/)
+
 ## Overview
 This project is a Python-based tool designed to automatically convert PDF formatted research articles into summarized audio files. It reads PDF files, generates summaries using OpenAI's GPT-4o-mini model (default), converts these summaries into a nice audio, saves summary and abstract of the document in a Notion database (if desired) and then sends audio and text via email. It's particularly useful for processing research papers or documents where quick audio summaries are beneficial.<br><br>For demonstration purposes, there is already one paper located in the *Papers* folder and the created summary in *Outputs*.
 
